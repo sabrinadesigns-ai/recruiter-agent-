@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chat with Sabrina's AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --accent: #e91e63;
+    --accent-light: #fce4ec;
+    --bg: #fffbfa;
+    --bubble-user: #e91e63;
+    --bubble-agent: #fdeef1;
+    --text-dark: #1a1a1a;
+    --text-light: #ffffff;
+    --radius: 16px;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    height: 100%;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg);
+  }
+  #chat-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  #messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .msg {
+    max-width: 80%;
+    padding: 10px 14px;
+    border-radius: var(--radius);
+    line-height: 1.4;
+    font-size: 15px;
+    white-space: pre-wrap;
+  }
+  .msg.user {
+    align-self: flex-end;
+    background: var(--bubble-user);
+    color: var(--text-light);
+    border-bottom-right-radius: 4px;
+  }
+  .msg.agent {
+    align-self: flex-start;
+    background: var(--bubble-agent);
+    color: var(--text-dark);
+    border-bottom-left-radius: 4px;
+  }
+  .msg.typing {
+    align-self: flex-start;
+    background: var(--bubble-agent);
+    color: #888;
+    font-style: italic;
+  }
+  #starter-questions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 0 16px 12px;
+  }
+  .starter-btn {
+    background: #fff;
+    border: 1px solid #d0d5dd;
+    border-radius: 20px;
+    padding: 8px 14px;
+    font-size: 13px;
+    cursor: pointer;
+    color: var(--accent);
+  }
+  .starter-btn:hover { background: #f5faff; }
+  #input-row {
+    display: flex;
+    gap: 8px;
+    padding: 12px 16px;
+    border-top: 1px solid #e5e7eb;
+  }
+  #input-row input {
+    flex: 1;
+    padding: 12px 14px;
+    border-radius: 24px;
+    border: 1px solid #d0d5dd;
+    font-size: 15px;
+    outline: none;
+  }
+  #input-row input:focus { border-color: var(--accent); }
+  #input-row button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 24px;
+    padding: 0 20px;
+    font-size: 15px;
+    cursor: pointer;
+  }
+  #input-row button:disabled { opacity: 0.5; cursor: default; }
+  #header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 16px;
+    background: linear-gradient(135deg, #ec6a92 0%, #f5a679 100%);
+  }
+  #header img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+    border: 2px solid #ffffff;
+  }
+  #header-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #ffffff;
+    line-height: 1.3;
+  }
+  #header-subtext {
+    font-family: 'Fraunces', Georgia, serif;
+    font-style: italic;
+    font-size: 13px;
+    font-weight: 400;
+    color: rgba(255,255,255,0.9);
+  }
+  #footer-note {
+    text-align: center;
+    font-size: 11px;
+    color: #98a2b3;
+    padding: 6px 16px 10px;
+  }
+</style>
+</head>
+<body>
+
+<div id="chat-container">
+  <div id="header">
+    <img src="sabrina.jpg" alt="Sabrina" />
+    <div>
+      <div id="header-text">Sabrina's AI</div>
+      <div id="header-subtext">Chat with me</div>
+    </div>
+  </div>
+  <div id="messages"></div>
+  <div id="starter-questions">
+    <button class="starter-btn" data-q="How do you actually work? What's your process?">🔍 How I actually work</button>
+    <button class="starter-btn" data-q="What kind of role are you looking for?">🎯 What are you looking for?</button>
+    <button class="starter-btn" data-q="Why did you build this AI agent?">🤖 Why am I an AI agent?</button>
+  </div>
+  <div id="input-row">
+    <input type="text" id="user-input" placeholder="Ask me anything..." autocomplete="off" />
+    <button id="send-btn">Send ➤</button>
+  </div>
+  <div id="footer-note">Conversations may be reviewed to improve this assistant.</div>
+</div>
+
+<script>
+  // Point this at your deployed Netlify function URL, e.g.
+  // https://your-site-name.netlify.app/.netlify/functions/chat
+  const CHAT_ENDPOINT = "https://gentle-meringue-b058c8.netlify.app/.netlify/functions/chat";
+
+  const messagesEl = document.getElementById('messages');
+  const inputEl = document.getElementById('user-input');
+  const sendBtn = document.getElementById('send-btn');
+  const starterQuestions = document.getElementById('starter-questions');
+
+  // Simple session ID so logged rows for one visit can be grouped together.
+  const sessionId = 'session_' + Math.random().toString(36).slice(2) + '_' + Date.now();
+
+  let conversation = []; // { role: 'user' | 'assistant', content: string }
+
+  function addMessage(role, text, animate) {
+    const div = document.createElement('div');
+    div.className = 'msg ' + (role === 'user' ? 'user' : 'agent');
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    if (role === 'agent' && animate) {
+      typeOutText(div, text);
+    } else {
+      div.textContent = text;
+    }
+  }
+
+  function typeOutText(el, text) {
+    let i = 0;
+    const speed = 14; // ms per character — tweak for faster/slower typing
+    function step() {
+      if (i <= text.length) {
+        el.textContent = text.slice(0, i);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        i++;
+        setTimeout(step, speed);
+      }
+    }
+    step();
+  }
+
+  function addTypingIndicator() {
+    const div = document.createElement('div');
+    div.className = 'msg typing';
+    div.id = 'typing-indicator';
+    div.textContent = 'typing...';
+    messagesEl.appendChild(div);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  function removeTypingIndicator() {
+    const el = document.getElementById('typing-indicator');
+    if (el) el.remove();
+  }
+
+  async function sendMessage(text) {
+    if (!text.trim()) return;
+
+    addMessage('user', text);
+    conversation.push({ role: 'user', content: text });
+    inputEl.value = '';
+    sendBtn.disabled = true;
+    starterQuestions.style.display = 'none';
+    addTypingIndicator();
+
+    try {
+      const res = await fetch(CHAT_ENDPOINT, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages: conversation, sessionId }),
+      });
+
+      const data = await res.json();
+      removeTypingIndicator();
+
+      if (!res.ok) {
+        addMessage('agent', data.error || "Something went wrong — please try again.");
+        return;
+      }
+
+      addMessage('agent', data.reply, true);
+      conversation.push({ role: 'assistant', content: data.reply });
+    } catch (err) {
+      removeTypingIndicator();
+      addMessage('agent', "I'm having trouble connecting right now — please try again in a moment.");
+    } finally {
+      sendBtn.disabled = false;
+      inputEl.focus();
+    }
+  }
+
+  sendBtn.addEventListener('click', () => sendMessage(inputEl.value));
+  inputEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') sendMessage(inputEl.value);
+  });
+  starterQuestions.addEventListener('click', (e) => {
+    if (e.target.matches('.starter-btn')) {
+      sendMessage(e.target.dataset.q);
+    }
+  });
+
+  // Fixed greeting written by Sabrina — no API call needed to show it.
+  const GREETING = "Hi there! Would you like to know more about me? Ask me anything!";
+
+  window.addEventListener('DOMContentLoaded', () => {
+    addMessage('agent', GREETING, true);
+  });
+</script>
+
+</body>
+</html>
