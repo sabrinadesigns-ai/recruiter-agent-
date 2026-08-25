@@ -6,11 +6,12 @@
 <title>Chat with Sabrina's AI</title>
 <style>
   :root {
-    --accent: #2b6cb0;
-    --bg: #ffffff;
-    --bubble-user: #2b6cb0;
-    --bubble-agent: #f0f2f5;
-    --text-dark: #1a1a1a;
+    --accent: #e2703a;
+    --accent-light: #fbe9e1;
+    --bg: #fffaf7;
+    --bubble-user: #e2703a;
+    --bubble-agent: #f7ede7;
+    --text-dark: #3a2a22;
     --text-light: #ffffff;
     --radius: 16px;
   }
@@ -104,6 +105,24 @@
     cursor: pointer;
   }
   #input-row button:disabled { opacity: 0.5; cursor: default; }
+  #header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px 6px;
+  }
+  #header img {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    object-fit: cover;
+    flex-shrink: 0;
+  }
+  #header-text {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--text-dark);
+  }
   #footer-note {
     text-align: center;
     font-size: 11px;
@@ -115,6 +134,10 @@
 <body>
 
 <div id="chat-container">
+  <div id="header">
+    <img src="sabrina.jpg" alt="Sabrina" />
+    <div id="header-text">Sabrina's AI</div>
+  </div>
   <div id="messages"></div>
   <div id="starter-questions">
     <button class="starter-btn" data-q="What's your UX and innovation background?">My background</button>
@@ -143,12 +166,31 @@
 
   let conversation = []; // { role: 'user' | 'assistant', content: string }
 
-  function addMessage(role, text) {
+  function addMessage(role, text, animate) {
     const div = document.createElement('div');
     div.className = 'msg ' + (role === 'user' ? 'user' : 'agent');
-    div.textContent = text;
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
+
+    if (role === 'agent' && animate) {
+      typeOutText(div, text);
+    } else {
+      div.textContent = text;
+    }
+  }
+
+  function typeOutText(el, text) {
+    let i = 0;
+    const speed = 14; // ms per character — tweak for faster/slower typing
+    function step() {
+      if (i <= text.length) {
+        el.textContent = text.slice(0, i);
+        messagesEl.scrollTop = messagesEl.scrollHeight;
+        i++;
+        setTimeout(step, speed);
+      }
+    }
+    step();
   }
 
   function addTypingIndicator() {
@@ -190,7 +232,7 @@
         return;
       }
 
-      addMessage('agent', data.reply);
+      addMessage('agent', data.reply, true);
       conversation.push({ role: 'assistant', content: data.reply });
     } catch (err) {
       removeTypingIndicator();
@@ -211,34 +253,12 @@
     }
   });
 
-  // Kick off with the agent's opening disclosure line automatically,
-  // without showing a fake "Hi" bubble from the visitor — we just prompt
-  // the model once, quietly, and show only its reply.
-  async function startConversation() {
-    addTypingIndicator();
-    conversation.push({
-      role: 'user',
-      content: '(Conversation starting — please give your opening greeting and disclosure.)',
-    });
-    try {
-      const res = await fetch(CHAT_ENDPOINT, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ messages: conversation, sessionId }),
-      });
-      const data = await res.json();
-      removeTypingIndicator();
-      if (res.ok) {
-        addMessage('agent', data.reply);
-        conversation.push({ role: 'assistant', content: data.reply });
-      }
-    } catch (err) {
-      removeTypingIndicator();
-      addMessage('agent', "Hi! I'm having a little trouble starting up — try refreshing the page.");
-    }
-  }
+  // Fixed greeting written by Sabrina — no API call needed to show it.
+  const GREETING = "Hi there! What brings you here today? Let me help you get to know Sabrina better — what would you like to know? Ask me anything!";
 
-  window.addEventListener('DOMContentLoaded', startConversation);
+  window.addEventListener('DOMContentLoaded', () => {
+    addMessage('agent', GREETING, true);
+  });
 </script>
 
 </body>
