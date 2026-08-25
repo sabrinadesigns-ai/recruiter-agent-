@@ -1,0 +1,9 @@
+{
+  "name": "sabrina-recruiter-agent",
+  "version": "1.0.0",
+  "description": "Recruiter-facing AI agent for sabrinadesigns.ai, powered by the Claude API.",
+  "private": true,
+  "engines": {
+    "node": ">=18"
+  }
+}
