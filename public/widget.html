@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta name="color-scheme" content="light" />
 <title>Chat with Sabrina's AI</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Fraunces:ital,wght@1,400;1,500&display=swap" rel="stylesheet">
 <style>
   :root {
+    color-scheme: light;
     --accent: #e91e63;
     --accent-light: #fce4ec;
     --bg: #fffbfa;
@@ -48,6 +50,10 @@
     line-height: 1.4;
     font-size: 15px;
     white-space: pre-wrap;
+  }
+  .msg strong {
+    font-weight: 700;
+    color: var(--accent);
   }
   .msg.user {
     align-self: flex-end;
@@ -157,7 +163,7 @@
   <div id="messages"></div>
   <div id="starter-questions">
     <button class="starter-btn" data-q="How do you actually work? What's your process?">🔍 How I actually work</button>
-    <button class="starter-btn" data-q="What kind of role are you looking for?">🎯 What are you looking for?</button>
+    <button class="starter-btn" data-q="Where could you help my team or organization?">🎯 Where I could help you?</button>
     <button class="starter-btn" data-q="Why did you build this AI agent?">🤖 Why am I an AI agent?</button>
   </div>
   <div id="input-row">
@@ -182,28 +188,56 @@
 
   let conversation = []; // { role: 'user' | 'assistant', content: string }
 
+  // Escapes raw text for safe HTML insertion, then converts **bold**
+  // markdown into real <strong> tags. Used only for agent messages —
+  // user-typed text stays as plain textContent for safety.
+  function escapeHtml(s) {
+    return s
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
+  function markdownToHtml(text) {
+    return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  }
+
   function addMessage(role, text, animate) {
     const div = document.createElement('div');
     div.className = 'msg ' + (role === 'user' ? 'user' : 'agent');
     messagesEl.appendChild(div);
     messagesEl.scrollTop = messagesEl.scrollHeight;
 
-    if (role === 'agent' && animate) {
+    if (role === 'user') {
+      div.textContent = text; // plain text only, never render user input as HTML
+    } else if (animate) {
       typeOutText(div, text);
     } else {
-      div.textContent = text;
+      div.innerHTML = markdownToHtml(text);
     }
   }
 
   function typeOutText(el, text) {
     let i = 0;
+    let output = '';
+    let boldOpen = false;
     const speed = 14; // ms per character — tweak for faster/slower typing
     function step() {
-      if (i <= text.length) {
-        el.textContent = text.slice(0, i);
+      if (i < text.length) {
+        if (text[i] === '*' && text[i + 1] === '*') {
+          output += boldOpen ? '</strong>' : '<strong>';
+          boldOpen = !boldOpen;
+          i += 2;
+        } else {
+          output += escapeHtml(text[i]);
+          i += 1;
+        }
+        el.innerHTML = boldOpen ? output + '</strong>' : output;
         messagesEl.scrollTop = messagesEl.scrollHeight;
-        i++;
         setTimeout(step, speed);
+      } else if (boldOpen) {
+        output += '</strong>';
+        el.innerHTML = output;
       }
     }
     step();
