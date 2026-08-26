@@ -55,6 +55,9 @@
     font-weight: 700;
     color: var(--accent);
   }
+  .msg em {
+    font-style: italic;
+  }
   .msg a {
     color: var(--accent);
     font-weight: 600;
@@ -217,7 +220,8 @@
 
   function markdownToHtml(text) {
     const bolded = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    return autoLinkUrls(bolded);
+    const italicized = bolded.replace(/\*(.+?)\*/g, '<em>$1</em>');
+    return autoLinkUrls(italicized);
   }
 
   function addMessage(role, text, animate) {
@@ -239,6 +243,7 @@
     let i = 0;
     let output = '';
     let boldOpen = false;
+    let italicOpen = false;
     const speed = 24; // ms per character — tweak for faster/slower typing
     function step() {
       if (i < text.length) {
@@ -246,11 +251,18 @@
           output += boldOpen ? '</strong>' : '<strong>';
           boldOpen = !boldOpen;
           i += 2;
+        } else if (text[i] === '*') {
+          output += italicOpen ? '</em>' : '<em>';
+          italicOpen = !italicOpen;
+          i += 1;
         } else {
           output += escapeHtml(text[i]);
           i += 1;
         }
-        el.innerHTML = boldOpen ? output + '</strong>' : output;
+        let display = output;
+        if (boldOpen) display += '</strong>';
+        if (italicOpen) display += '</em>';
+        el.innerHTML = display;
         messagesEl.scrollTop = messagesEl.scrollHeight;
         setTimeout(step, speed);
       } else {
