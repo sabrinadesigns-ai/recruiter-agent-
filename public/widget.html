@@ -55,6 +55,15 @@
     font-weight: 700;
     color: var(--accent);
   }
+  .msg a {
+    color: var(--accent);
+    font-weight: 600;
+    text-decoration: underline;
+    word-break: break-word;
+  }
+  .msg.user a {
+    color: #ffffff;
+  }
   .msg.user {
     align-self: flex-end;
     background: var(--bubble-user);
@@ -189,8 +198,9 @@
   let conversation = []; // { role: 'user' | 'assistant', content: string }
 
   // Escapes raw text for safe HTML insertion, then converts **bold**
-  // markdown into real <strong> tags. Used only for agent messages —
-  // user-typed text stays as plain textContent for safety.
+  // markdown into real <strong> tags, and auto-links any http(s) URLs into
+  // clickable anchors. Used only for agent messages — user-typed text
+  // stays as plain textContent for safety.
   function escapeHtml(s) {
     return s
       .replace(/&/g, '&amp;')
@@ -198,8 +208,16 @@
       .replace(/>/g, '&gt;');
   }
 
+  function autoLinkUrls(html) {
+    return html.replace(
+      /(https?:\/\/[^\s<]+)/g,
+      '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
+    );
+  }
+
   function markdownToHtml(text) {
-    return escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    const bolded = escapeHtml(text).replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return autoLinkUrls(bolded);
   }
 
   function addMessage(role, text, animate) {
@@ -221,7 +239,7 @@
     let i = 0;
     let output = '';
     let boldOpen = false;
-    const speed = 14; // ms per character — tweak for faster/slower typing
+    const speed = 24; // ms per character — tweak for faster/slower typing
     function step() {
       if (i < text.length) {
         if (text[i] === '*' && text[i + 1] === '*') {
@@ -235,9 +253,11 @@
         el.innerHTML = boldOpen ? output + '</strong>' : output;
         messagesEl.scrollTop = messagesEl.scrollHeight;
         setTimeout(step, speed);
-      } else if (boldOpen) {
-        output += '</strong>';
-        el.innerHTML = output;
+      } else {
+        // Typing finished — do a final pass so any URLs in the message
+        // become properly clickable links (links aren't wired up live
+        // during the character-by-character animation).
+        el.innerHTML = markdownToHtml(text);
       }
     }
     step();
@@ -308,6 +328,10 @@
 
   window.addEventListener('DOMContentLoaded', () => {
     addMessage('agent', GREETING, true);
+    // Add it to conversation history so the model knows the greeting (and
+    // its AI disclosure) already happened — prevents it from repeating
+    // the disclosure again on the visitor's first real message.
+    conversation.push({ role: 'assistant', content: GREETING });
   });
 </script>
 
