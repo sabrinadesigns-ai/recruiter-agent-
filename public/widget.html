@@ -101,6 +101,25 @@
     color: var(--accent);
   }
   .starter-btn:hover { background: #f5faff; }
+  .quick-replies {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 4px 16px 4px 16px;
+    align-self: flex-start;
+    max-width: 80%;
+  }
+  .quick-reply-btn {
+    background: #fff;
+    border: 1.5px solid var(--accent);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    color: var(--accent);
+  }
+  .quick-reply-btn:hover { background: var(--accent-light); }
   #input-row {
     display: flex;
     gap: 8px;
@@ -224,7 +243,7 @@
     return autoLinkUrls(italicized);
   }
 
-  function addMessage(role, text, animate) {
+  function addMessage(role, text, animate, onDone) {
     const div = document.createElement('div');
     div.className = 'msg ' + (role === 'user' ? 'user' : 'agent');
     messagesEl.appendChild(div);
@@ -233,13 +252,14 @@
     if (role === 'user') {
       div.textContent = text; // plain text only, never render user input as HTML
     } else if (animate) {
-      typeOutText(div, text);
+      typeOutText(div, text, onDone);
     } else {
       div.innerHTML = markdownToHtml(text);
+      if (onDone) onDone();
     }
   }
 
-  function typeOutText(el, text) {
+  function typeOutText(el, text, onDone) {
     let i = 0;
     let output = '';
     let boldOpen = false;
@@ -270,6 +290,7 @@
         // become properly clickable links (links aren't wired up live
         // during the character-by-character animation).
         el.innerHTML = markdownToHtml(text);
+        if (onDone) onDone();
       }
     }
     step();
@@ -287,6 +308,68 @@
   function removeTypingIndicator() {
     const el = document.getElementById('typing-indicator');
     if (el) el.remove();
+  }
+
+  // Parses a trailing [QUICK_REPLIES: "A" | "B" | "C"] marker off the end
+  // of a message. Returns { cleanText, options } — options is an array
+  // (possibly empty) of short strings to render as tappable buttons.
+  function parseQuickReplies(text) {
+    const match = text.match(/\n?\[QUICK_REPLIES:\s*(.+?)\]\s*$/i);
+    if (!match) return { cleanText: text, options: [] };
+
+    const cleanText = text.slice(0, match.index).trimEnd();
+    const options = match[1]
+      .split('|')
+      .map((s) => s.trim().replace(/^["']|["']$/g, ''))
+      .filter(Boolean);
+
+    return { cleanText, options };
+  }
+
+  function renderQuickReplies(options) {
+    if (!options.length) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'quick-replies';
+    options.forEach((opt) => {
+      const btn = document.createElement('button');
+      btn.className = 'quick-reply-btn';
+      btn.textContent = opt;
+      btn.addEventListener('click', () => {
+        wrap.remove(); // these options are now stale once one is picked
+        sendMessage(opt);
+      });
+      wrap.appendChild(btn);
+    });
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
+  }
+
+  // Parses a trailing [EMAIL_DRAFT: subject="..." | body="..."] marker off
+  // the end of a message. Returns { cleanText, emailDraft } — emailDraft is
+  // null if no marker was found.
+  function parseEmailDraft(text) {
+    const match = text.match(/\n?\[EMAIL_DRAFT:\s*subject="(.*?)"\s*\|\s*body="(.*?)"\s*\]\s*$/is);
+    if (!match) return { cleanText: text, emailDraft: null };
+
+    const cleanText = text.slice(0, match.index).trimEnd();
+    const emailDraft = { subject: match[1], body: match[2] };
+    return { cleanText, emailDraft };
+  }
+
+  function renderEmailDraft(emailDraft) {
+    if (!emailDraft) return;
+    const wrap = document.createElement('div');
+    wrap.className = 'quick-replies'; // reuse the same layout styling
+    const link = document.createElement('a');
+    link.className = 'quick-reply-btn';
+    link.textContent = '📧 Send this email to Sabrina';
+    link.href =
+      'mailto:sabrinadesigns.ai@gmail.com' +
+      '?subject=' + encodeURIComponent(emailDraft.subject) +
+      '&body=' + encodeURIComponent(emailDraft.body);
+    wrap.appendChild(link);
+    messagesEl.appendChild(wrap);
+    messagesEl.scrollTop = messagesEl.scrollHeight;
   }
 
   async function sendMessage(text) {
@@ -314,8 +397,15 @@
         return;
       }
 
-      addMessage('agent', data.reply, true);
-      conversation.push({ role: 'assistant', content: data.reply });
+      const { cleanText: afterQuickReplies, options } = parseQuickReplies(data.reply);
+      const { cleanText, emailDraft } = parseEmailDraft(afterQuickReplies);
+      addMessage('agent', cleanText, true, () => {
+        renderQuickReplies(options);
+        renderEmailDraft(emailDraft);
+      });
+      // Store the clean version (no markers) in history so the model isn't
+      // confused by its own formatting syntax when it reads back context.
+      conversation.push({ role: 'assistant', content: cleanText });
     } catch (err) {
       removeTypingIndicator();
       addMessage('agent', "I'm having trouble connecting right now — please try again in a moment.");
