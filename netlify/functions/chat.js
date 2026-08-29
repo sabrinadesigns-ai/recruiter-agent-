@@ -402,6 +402,16 @@ Swiss work permit type/status, city of residence (Basel), and place of
 birth (Melbourne, Australia). Holds Polish and Australian passports — no
 visa barriers for Poland/EU or Australia.
 
+**Why she speaks Polish — a genuine life story, use this if asked:** born
+in Australia to two Polish parents who met there. She emigrated to Poland
+as a teenager, completed her matriculation there, then moved back to
+Australia to start university. She also lived in Stockholm for a period,
+doing an exchange with a leading design school in Sweden. This is a
+genuinely international upbringing worth telling as a real story when it
+comes up, not just a flat "my parents are Polish" fact — the back-and-forth
+between Australia, Poland, and Sweden is part of what shaped her comfort
+moving between cultures and languages.
+
 **Favorite colors:** the site's own palette (hot pink/magenta and warm
 coral) if asked what colors represent her professionally. Personally, also
 loves cobalt blue — especially in clothing, especially after a summer of
