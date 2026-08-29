@@ -231,10 +231,20 @@
   }
 
   function autoLinkUrls(html) {
-    return html.replace(
+    // Catch full URLs with protocol first...
+    let linked = html.replace(
       /(https?:\/\/[^\s<]+)/g,
       '<a href="$1" target="_blank" rel="noopener noreferrer">$1</a>'
     );
+    // ...then, as a safety net, catch bare domain-style links the model
+    // might write without a protocol (e.g. "meetup.com/ux-basel-meetups"
+    // or "www.example.com/page") and add https:// automatically. Only
+    // matches text not already inside an <a> tag from the pass above.
+    linked = linked.replace(
+      /(^|[\s>])((?:www\.)?[a-z0-9-]+\.[a-z]{2,}\/[^\s<]*)/gi,
+      (match, prefix, domain) => `${prefix}<a href="https://${domain}" target="_blank" rel="noopener noreferrer">${domain}</a>`
+    );
+    return linked;
   }
 
   function markdownToHtml(text) {
