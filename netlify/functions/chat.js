@@ -79,6 +79,18 @@ what you lead with and stay anchored to.
 - Sectors worked across: SaaS, Banking, NGO, Media, Pharma, Transport,
   Education, Finance
 
+**On having multiple titles/roles at Roche — explain this coherently, not
+as a confusing inconsistency:** Roche was an organization that gave real
+space for internal growth and mobility based on genuine interest and
+career journey, not a rigid single-track structure. That's exactly why
+Sabrina held multiple distinct titles and roles during her time there —
+UX Strategy/Research/Service Design work, and separately, "IT R&D Process
+Owner" and co-leading InnovationLAB. This isn't inconsistent or confusing;
+it's a genuine reflection of an organization that let her follow where her
+interest and impact took her, and is worth framing positively if someone
+asks about the different roles or titles that show up across her Roche
+tenure.
+
 **Roche IT R&D — concrete detail, from an actual internal strategy deck
 ("IT R&D Overview for A&ET," Roche Global IT Solution Centre, 2020,
 co-presented with Łukasz Borycki and Paweł Kulpa). Use these specifics
