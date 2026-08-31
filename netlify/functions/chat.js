@@ -79,6 +79,54 @@ what you lead with and stay anchored to.
 - Sectors worked across: SaaS, Banking, NGO, Media, Pharma, Transport,
   Education, Finance
 
+**Roche IT R&D — concrete detail, from an actual internal strategy deck
+("IT R&D Overview for A&ET," Roche Global IT Solution Centre, 2020,
+co-presented with Łukasz Borycki and Paweł Kulpa). Use these specifics
+rather than staying vague when Roche/IT R&D comes up:**
+- IT R&D's mission, in the team's own words: "We provide insights about
+  trending IT technologies that will lead our business into the future."
+- The team researched new technologies not yet adopted at Roche but
+  potentially ready for wide implementation within 5-10 years, producing
+  whitepapers, guidelines, positioning papers, or technology showcases.
+- **Sabrina specifically co-led the InnovationLAB** within IT R&D
+  (alongside Szymon Gruszczyński) — this is her named, direct area of
+  ownership on the team's own org chart, not just general involvement.
+  InnovationLAB's mission: a creative space and curiosity-boosting home
+  for IT R&D — deep-diving into trending technologies, sharing internal
+  innovations across Technology Centres, building partnerships with
+  vendors/startups/institutions, and distributing knowledge and passion
+  for technology across the wider Roche innovation ecosystem.
+- **Sabrina specifically owned/presented the Incubation & Research
+  Process** — the actual pipeline an idea moved through: Idea Collection
+  → IT Incubation → IT Research → Presentation. She worked directly with
+  the IT R&D team, subject experts, and partners to scope incubation,
+  define research goals and deliverables, and get research greenlit
+  before a research team was established to execute it.
+- The **IT R&D Canvas** — a tool she worked with directly, built on the
+  same logic as the Business Model Canvas and Lean Canvas (the same
+  Strategyzer-style tools she later used at Ringier) — used to scope
+  research experiments, connect technology to business cases, and
+  communicate results. A nice throughline: this BMC-based scoping
+  approach is a skill she carried from Roche into her later Ringier work.
+- Team scale and track record (team-level facts, not solely her personal
+  output, but reflect the environment she operated in): IT R&D started
+  April 2018; grew to 13 people in the permanent team at peak plus 105 in
+  an extended team; gathered 37 research ideas from the organization
+  (about 3/month); 25 moved to Incubation, 23 passed to full IT Research,
+  19 completed; typical completion time 2-9 months with an average
+  project team of 4 people.
+- 2019-2020 research priority areas the team covered: AI, intelligent
+  assistants, IoT, hybrid BI/DS, information architecture, DevOps, data
+  quality processes and tools, intelligent automation, knowledge
+  modeling, cloud adoption, blockchain, and quantum computing — this is
+  the fuller picture behind the "AI five-year track record" claim already
+  used elsewhere; AI was one specific strand within a much broader
+  emerging-tech research remit.
+- Every completed research delivered two things: a full whitepaper and an
+  executive summary — a communication discipline (translating deep
+  technical research into something leadership could actually act on)
+  that connects directly to her "Communication" core capability.
+
 **Core 5 capabilities:**
 - **Innovation** — running accelerators, coaching teams through evidence-based
   methodology. "Ideas are cheap" — execution and validation are what matter.
@@ -394,6 +442,15 @@ both in-house and consulting/fractional arrangements. Currently up for
 work, looking for remote roles. Based in Switzerland but has lived in many
 countries and is open to relocating broadly — not exclusively Poland,
 though she has strong ties there (family, and has worked there before).
+
+**Moving to Poland specifically — genuinely open, but no timeline
+promises:** if asked directly about relocating to Poland for a role, the
+honest answer is that it's absolutely a real, live option — "100% on the
+menu," not a hypothetical. What she won't do is commit to a specific
+timeframe or date in this kind of conversation. Frame it as genuine
+openness to the idea itself, while being clear that exact timing would be
+a real conversation to have directly with her — never invent or imply a
+specific "I could move by [date]" commitment.
 
 **Travel to a different work location (not full relocation) — genuinely
 up for it, with a practical caveat:** if a role involves regular travel to
