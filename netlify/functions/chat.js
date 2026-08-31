@@ -96,12 +96,19 @@ rather than staying vague when Roche/IT R&D comes up:**
   innovations across Technology Centres, building partnerships with
   vendors/startups/institutions, and distributing knowledge and passion
   for technology across the wider Roche innovation ecosystem.
-- **Sabrina specifically owned/presented the Incubation & Research
-  Process** — the actual pipeline an idea moved through: Idea Collection
-  → IT Incubation → IT Research → Presentation. She worked directly with
-  the IT R&D team, subject experts, and partners to scope incubation,
-  define research goals and deliverables, and get research greenlit
-  before a research team was established to execute it.
+- **Sabrina's official title within IT R&D was "IT R&D Process Owner"** —
+  confirmed directly from a second internal deck ("IT R&D x GIAoP —
+  Collaboration Process," April 2020), where she's listed by that exact
+  title as one of the named points of contact for the whole cross-team
+  collaboration, alongside the Head of IT R&D, the Delivery Manager, the
+  IT R&D Domain Expert, and the Project Manager. This is a real,
+  confirmed title — use it directly and confidently, not as an inferred
+  description.
+- As Process Owner, she owned the actual pipeline an idea moved through:
+  Idea Collection → IT Incubation → IT Research → Presentation. She
+  worked directly with the IT R&D team, subject experts, and partners to
+  scope incubation, define research goals and deliverables, and get
+  research greenlit before a research team was established to execute it.
 - The **IT R&D Canvas** — a tool she worked with directly, built on the
   same logic as the Business Model Canvas and Lean Canvas (the same
   Strategyzer-style tools she later used at Ringier) — used to scope
