@@ -1103,7 +1103,22 @@ exports.handler = async (event) => {
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
         max_tokens: 1024,
-        system: SYSTEM_PROMPT + dateContext,
+        // System prompt is split into two blocks: the large, static
+        // personality/content prompt (cached — Anthropic charges roughly
+        // 90% less for cached reads, which matters a lot given how big
+        // this prompt is) and the small, genuinely-changing date context
+        // (left uncached, since it's tiny and changes daily anyway).
+        system: [
+          {
+            type: 'text',
+            text: SYSTEM_PROMPT,
+            cache_control: { type: 'ephemeral' },
+          },
+          {
+            type: 'text',
+            text: dateContext,
+          },
+        ],
         messages: trimmedMessages,
       }),
     });
