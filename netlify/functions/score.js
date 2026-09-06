@@ -100,3 +100,4 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
     return { statusCode: 500, body: JSON.stringify({ error: "Scoring failed" }) };
   }
 };
+
