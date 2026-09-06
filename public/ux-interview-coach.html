@@ -15,6 +15,15 @@
 <meta property="og:url" content="https://chat.sabrinadesigns.ai/ux-interview-coach">
 <meta property="og:site_name" content="Sabrina Staniewska">
 
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HQWZ25JWW9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-HQWZ25JWW9');
+</script>
+
 <!-- Twitter Card (falls back for platforms that check it) -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="UX Interview Coach">
@@ -706,6 +715,9 @@ function renderPills() {
       currentIndex = 0;
       renderPills();
       renderQuestion();
+      if (typeof gtag === "function") {
+        gtag('event', 'topic_selected', { topic: ROUNDS[key].label });
+      }
     };
     roundsEl.appendChild(pill);
   });
@@ -798,6 +810,9 @@ async function sendTranscript(email) {
     saveForm.style.display = "none";
     saveNote.textContent = "Sent to " + email + " ✓";
     saveBtnLabel.textContent = "Update my saved answers";
+    if (typeof gtag === "function") {
+      gtag('event', 'transcript_saved', { answers_count: sessionLog.length });
+    }
   } catch (err) {
     console.error("Save transcript error:", err);
     saveNote.textContent = "";
@@ -877,6 +892,12 @@ async function scoreAnswer() {
         band: parsed.band,
         feedback: parsed.feedback,
         followUp: parsed.followUp
+      });
+    }
+    if (typeof gtag === "function") {
+      gtag('event', 'question_scored', {
+        round: ROUNDS[currentRound].label,
+        band: parsed.band
       });
     }
     resetSaveUI();
