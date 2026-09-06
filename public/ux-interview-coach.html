@@ -884,16 +884,14 @@ async function scoreAnswer() {
     feedbackTextEl.textContent = parsed.feedback;
     followupTextEl.textContent = parsed.followUp;
 
-    if (parsed.band !== "Off-topic") {
-      sessionLog.push({
-        round: ROUNDS[currentRound].label,
-        question: currentQuestion,
-        answer: answer,
-        band: parsed.band,
-        feedback: parsed.feedback,
-        followUp: parsed.followUp
-      });
-    }
+    sessionLog.push({
+      round: ROUNDS[currentRound].label,
+      question: currentQuestion,
+      answer: answer,
+      band: parsed.band,
+      feedback: parsed.feedback,
+      followUp: parsed.followUp
+    });
     if (typeof gtag === "function") {
       gtag('event', 'question_scored', {
         round: ROUNDS[currentRound].label,
