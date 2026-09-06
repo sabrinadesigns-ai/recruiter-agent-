@@ -39,7 +39,7 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
-        model: "claude-sonnet-4-6",
+        model: "claude-sonnet-5",
         max_tokens: 1000,
         system: systemPrompt,
         messages: [{ role: "user", content: userPrompt }]
@@ -58,8 +58,16 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
     const clean = raw.replace(/```json|```/g, "").trim();
 
     // Validate it's parseable JSON before returning it, so the client never
-    // has to guess whether it got a real result or stray text.
-    const parsed = JSON.parse(clean);
+    // has to guess whether it got a real result or stray text. Falls back to
+    // extracting the JSON object if the model wrapped it in extra text.
+    let parsed;
+    try {
+      parsed = JSON.parse(clean);
+    } catch (parseErr) {
+      const match = clean.match(/\{[\s\S]*\}/);
+      if (!match) throw parseErr;
+      parsed = JSON.parse(match[0]);
+    }
 
     // Fire-and-forget logging to Google Sheets. A logging failure should
     // never block or break the scoring response the user is waiting on.
