@@ -455,6 +455,46 @@
     color: var(--success-text);
     margin: 0;
   }
+  .save-success {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--success-bg);
+    border: 0.5px solid var(--success-border);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .save-success-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--success-text);
+    color: #FFFFFF;
+    font-size: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .save-success-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--success-text);
+    margin: 0 0 3px;
+  }
+  .save-success-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .save-error {
+    font-size: 12px;
+    color: var(--danger-text);
+    margin: 8px 0 0;
+    display: none;
+  }
   .save-form {
     background: var(--surface-1);
     border-radius: 12px;
@@ -575,16 +615,24 @@
       <button class="save-btn" id="saveBtn" aria-label="Save this session">
         <span class="save-icon">⬇</span> <span id="saveBtnLabel">Save my answers</span>
       </button>
-      <p class="save-note" id="saveNote"></p>
+    </div>
+
+    <div class="save-success" id="saveSuccess" style="display:none;">
+      <span class="save-success-icon">✓</span>
+      <div>
+        <p class="save-success-title" id="saveSuccessTitle"></p>
+        <p class="save-success-sub" id="saveSuccessSub">We'll send the full session again automatically when you close this tab.</p>
+      </div>
     </div>
 
     <div class="save-form" id="saveForm" style="display:none;">
-      <p class="save-form-label">Where should we send it?</p>
+      <p class="save-form-label">We're keeping track of your answers as you go. Where should we send the full session once you're done?</p>
       <div class="save-form-row">
         <input type="email" id="emailInput" class="email-input" placeholder="you@email.com">
         <button class="btn-primary save-submit-btn" id="saveSubmitBtn">Send</button>
       </div>
-      <p class="save-privacy">Used only to send you this transcript — nothing else.</p>
+      <p class="save-privacy">Used only for this transcript — sent now, and again automatically when you close the tab.</p>
+      <p class="save-error" id="saveError"></p>
     </div>
 
     <button class="btn-primary modal-done-btn" id="modalDoneBtn">Got it</button>
@@ -675,9 +723,11 @@ const followupTextEl = document.getElementById("followupText");
 const errorTextEl = document.getElementById("errorText");
 const saveBtn = document.getElementById("saveBtn");
 const saveBtnLabel = document.getElementById("saveBtnLabel");
-const saveNote = document.getElementById("saveNote");
 const saveRow = document.getElementById("saveRow");
+const saveSuccess = document.getElementById("saveSuccess");
+const saveSuccessTitle = document.getElementById("saveSuccessTitle");
 const saveForm = document.getElementById("saveForm");
+const saveError = document.getElementById("saveError");
 const emailInput = document.getElementById("emailInput");
 const saveSubmitBtn = document.getElementById("saveSubmitBtn");
 
@@ -784,7 +834,8 @@ function bandClass(band) {
 
 function resetSaveUI() {
   saveForm.style.display = "none";
-  saveNote.textContent = "";
+  saveSuccess.style.display = "none";
+  saveError.style.display = "none";
   saveBtnLabel.textContent = savedEmail
     ? "Update my saved answers"
     : "Save my answers";
@@ -798,26 +849,38 @@ function isValidEmail(value) {
 async function sendTranscript(email) {
   saveSubmitBtn.disabled = true;
   saveSubmitBtn.textContent = "Sending…";
+  saveError.style.display = "none";
   try {
     const response = await fetch("/.netlify/functions/save-transcript", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, sessionLog })
     });
-    if (!response.ok) throw new Error("Save failed");
+
+    if (!response.ok) {
+      let message = "Couldn't send right now — try again in a moment.";
+      try {
+        const errBody = await response.json();
+        if (errBody && errBody.error) console.error("save-transcript error:", errBody.error);
+      } catch (_) {}
+      throw new Error(message);
+    }
 
     savedEmail = email;
     saveForm.style.display = "none";
-    saveNote.textContent = "Sent to " + email + " ✓";
+    saveError.style.display = "none";
+    saveSuccessTitle.textContent = "Sent to " + email;
+    saveSuccess.style.display = "flex";
     saveBtnLabel.textContent = "Update my saved answers";
     if (typeof gtag === "function") {
       gtag('event', 'transcript_saved', { answers_count: sessionLog.length });
     }
   } catch (err) {
     console.error("Save transcript error:", err);
-    saveNote.textContent = "";
+    saveSuccess.style.display = "none";
     saveForm.style.display = "block";
-    emailInput.setAttribute("data-error", "1");
+    saveError.textContent = err.message || "Couldn't send right now — try again in a moment.";
+    saveError.style.display = "block";
   } finally {
     saveSubmitBtn.disabled = false;
     saveSubmitBtn.textContent = "Send";
@@ -915,6 +978,21 @@ async function scoreAnswer() {
 }
 
 scoreBtn.addEventListener("click", scoreAnswer);
+
+// Send the final transcript automatically when the tab closes, if the
+// person already opted in with an email at least once. sendBeacon is used
+// specifically because it reliably delivers during page unload, unlike a
+// normal fetch which the browser can abandon mid-flight.
+function sendFinalBeacon() {
+  if (!savedEmail || sessionLog.length === 0) return;
+  const payload = JSON.stringify({ email: savedEmail, sessionLog });
+  navigator.sendBeacon(
+    "/.netlify/functions/save-transcript",
+    new Blob([payload], { type: "application/json" })
+  );
+}
+window.addEventListener("pagehide", sendFinalBeacon);
+window.addEventListener("beforeunload", sendFinalBeacon);
 
 renderPills();
 renderQuestion();
