@@ -35,7 +35,7 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY,
+        "x-api-key": process.env.ANTHROPIC_API_KEY_V2 || process.env.ANTHROPIC_API_KEY,
         "anthropic-version": "2023-06-01"
       },
       body: JSON.stringify({
@@ -100,4 +100,3 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
     return { statusCode: 500, body: JSON.stringify({ error: "Scoring failed" }) };
   }
 };
-
