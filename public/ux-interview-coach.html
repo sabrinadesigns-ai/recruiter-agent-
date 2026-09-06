@@ -1,0 +1,742 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UX Interview Coach</title>
+
+<!-- Open Graph / social preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="UX Interview Coach">
+<meta property="og:description" content="Practice defending your decisions — not just describing them.">
+<meta property="og:image" content="https://chat.sabrinadesigns.ai/ux-interview-coach-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://chat.sabrinadesigns.ai/ux-interview-coach">
+<meta property="og:site_name" content="Sabrina Staniewska">
+
+<!-- Twitter Card (falls back for platforms that check it) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="UX Interview Coach">
+<meta name="twitter:description" content="Practice defending your decisions — not just describing them.">
+<meta name="twitter:image" content="https://chat.sabrinadesigns.ai/ux-interview-coach-og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F7F4;
+    --surface-1: #F2F1EE;
+    --surface-2: #ECEAE6;
+    --text-primary: #1A1A1A;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border: #E5E5E5;
+    --border-strong: #CCCCCC;
+    --rose: #E91E6B;
+    --rose-bg: #FDEAF1;
+    --accent-text: #1A5FA8;
+    --accent-bg: #EBF2FB;
+    --accent-border: #B5D0F0;
+    --success-text: #1A7A3A;
+    --success-bg: #EBF7EF;
+    --success-border: #A8D5B5;
+    --warning-text: #8A5C0A;
+    --warning-bg: #FEF6E7;
+    --warning-border: #F0C97A;
+    --danger-text: #CC3300;
+    --danger-bg: #FDF0EC;
+    --danger-border: #F5B8A5;
+    --font-sans: 'Inter', system-ui, -apple-system, Arial, sans-serif;
+    --font-voice: 'Inter', system-ui, -apple-system, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #FA7295 0%, #FAD772 100%);
+    background-attachment: fixed;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Hero band */
+  .hero-band {
+    padding: 1.5rem 1.25rem 0.85rem;
+  }
+  .hero-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 4px;
+    color: #1A1A1A;
+  }
+  .sub {
+    font-size: 13px;
+    color: rgba(26,26,26,0.72);
+    line-height: 1.4;
+    max-width: 440px;
+    margin: 0;
+  }
+  .hero-divider {
+    width: 48px;
+    height: 2px;
+    background: rgba(26,26,26,0.28);
+    border-radius: 2px;
+    margin-top: 16px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1.25rem 4rem;
+  }
+
+  /* Round picker */
+  .rounds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0.75rem 0 1rem;
+  }
+  .round-pill {
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 0.5px solid rgba(26,26,26,0.15);
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.55);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: border-color 150ms, color 150ms, background 150ms;
+  }
+  .round-pill:hover { background: rgba(255,255,255,0.8); }
+  .round-pill.active {
+    background: #FFFFFF;
+    color: var(--rose);
+    border-color: #FFFFFF;
+    font-weight: 600;
+  }
+
+  /* Instruction block */
+  .tip-list { display: none; }
+
+  /* Question card */
+  .question-row {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  .card-wrap {
+    width: 100%;
+    padding: 2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FA7295 0%, #FAD772 100%);
+  }
+  .nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: none;
+    box-shadow: 0 3px 10px rgba(26,26,26,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 150ms, box-shadow 150ms;
+  }
+  .nav-arrow:hover {
+    box-shadow: 0 4px 14px rgba(26,26,26,0.24);
+    transform: translateY(-50%) scale(1.06);
+  }
+  .nav-arrow.left { left: -17px; }
+  .nav-arrow.right { right: -17px; }
+  .nav-arrow .triangle { width: 0; height: 0; }
+  .nav-arrow.left .triangle {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 9px solid var(--rose);
+    margin-right: 2px;
+  }
+  .nav-arrow.right .triangle {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid var(--rose);
+    margin-left: 2px;
+  }
+  .question-card {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 0.85rem 1.75rem;
+  }
+  .question-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-family: var(--font-voice);
+    font-style: italic;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  /* Answer area */
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(26,26,26,0.75);
+    margin: 0 0 6px;
+  }
+  .field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .field-label-row .field-label { margin-bottom: 0; }
+  .field-label-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .word-count { font-size: 11px; color: rgba(26,26,26,0.55); }
+  .tooltip-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(26,26,26,0.15);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: help;
+  }
+  .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: #FFFFFF;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    width: 220px;
+    text-align: left;
+    transition: opacity 150ms;
+    z-index: 10;
+  }
+  .tooltip-icon:hover .tooltip-text,
+  .tooltip-icon.show .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+  .textarea-wrap {
+    padding: 2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FA7295 0%, #FAD772 100%);
+    margin-bottom: 0.5rem;
+  }
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 190px;
+    resize: vertical;
+    background: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(26,26,26,0.04);
+  }
+  textarea:focus {
+    outline: none;
+  }
+  textarea::placeholder { color: var(--text-muted); font-style: italic; }
+
+  .action-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms, opacity 150ms;
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.55);
+    border: 1.5px solid rgba(26,26,26,0.35);
+    color: var(--text-primary);
+    border-radius: 16px;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.8); }
+  .btn-primary {
+    background: var(--rose);
+    border: none;
+    color: #FFFFFF;
+    border-radius: 16px;
+    padding: 12px 24px;
+  }
+  .btn-primary:hover { background: #C11259; }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,26,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    z-index: 100;
+  }
+  .modal-overlay.visible {
+    display: flex;
+    animation: fadeIn 150ms ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-box {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 1.75rem;
+    max-width: 460px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(26,26,26,0.35);
+  }
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: none;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-close:hover { background: var(--surface-1); color: var(--text-primary); }
+  .band-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 3px 11px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+    margin-right: 24px;
+  }
+  .band-strong { background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); }
+  .band-developing { background: var(--warning-bg); color: var(--warning-text); border: 0.5px solid var(--warning-border); }
+  .band-needs-work { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
+  .band-offtopic { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border-strong); }
+
+  .feedback-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin: 0 0 1.1rem;
+  }
+  .followup {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms;
+  }
+  .followup:hover {
+    background: var(--surface-1);
+    border-color: var(--border-strong);
+  }
+  .followup-cta {
+    display: block;
+    font-size: 11px;
+    color: var(--rose);
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .followup-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .followup-text {
+    font-family: var(--font-voice);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .error-text {
+    font-size: 13px;
+    color: var(--danger-text);
+    margin-top: 10px;
+  }
+  .modal-done-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 22px; }
+    .question-text { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-band">
+  <div class="hero-inner">
+    <h1>UX Interview Coach</h1>
+    <p class="sub">Practice defending your decisions — not just describing them.</p>
+    <div class="hero-divider"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <p class="field-label">1. Choose topic</p>
+  <div class="rounds" id="rounds"></div>
+
+  <p class="field-label">2. Interview question</p>
+  <div class="question-row">
+    <button class="nav-arrow left" id="prevQBtn" aria-label="Previous question"><span class="triangle"></span></button>
+    <div class="card-wrap">
+      <div class="question-card" id="questionCard">
+        <p class="question-tag" id="roundLabel">Round</p>
+        <p class="question-text" id="questionText">Loading…</p>
+      </div>
+    </div>
+    <button class="nav-arrow right" id="nextQBtn" aria-label="Next question"><span class="triangle"></span></button>
+  </div>
+
+  <div class="field-label-row">
+    <p class="field-label">3. Your answer</p>
+    <div class="field-label-right">
+      <span class="word-count" id="wordCount">0 words</span>
+      <span class="tooltip-icon" id="tipIcon">i<span class="tooltip-text">Name the decision, say what you rejected, and defend the choice. A list of steps reads junior. A defended fork reads senior.</span></span>
+    </div>
+  </div>
+  <div class="textarea-wrap">
+    <textarea id="answerBox" placeholder="Structure your answer here. Name the fork, then defend your side of it — an interviewer is scoring your judgment, not whether you land the &quot;correct&quot; answer."></textarea>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-primary" id="scoreBtn" disabled>Score my answer</button>
+  </div>
+
+  <footer>
+    Content is generated and unverified. Built as a practice tool — not a substitute for mock interviews with real people.
+    <br>A tool by Sabrina Staniewska — <a href="https://sabrinadesigns.ai" target="_blank" rel="noopener" style="color:var(--rose);text-decoration:none;font-weight:500;">sabrinadesigns.ai</a>
+  </footer>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    <span class="band-tag" id="bandTag">—</span>
+    <p class="feedback-text" id="feedbackText"></p>
+    <div class="followup" id="followupBox">
+      <p class="followup-label">What a real panel would ask next</p>
+      <p class="followup-text" id="followupText"></p>
+      <span class="followup-cta">Tap to answer this instead →</span>
+    </div>
+    <p class="error-text" id="errorText" style="display:none;"></p>
+    <button class="btn-primary modal-done-btn" id="modalDoneBtn">Got it</button>
+  </div>
+</div>
+
+<script>
+const ROUNDS = {
+  portfolio: {
+    label: "Portfolio / case study deep-dive",
+    questions: [
+      "Walk me through a project where the data told you something you didn't expect. What did you do next?",
+      "Pick a project and tell me about a decision you'd defend even if the metrics hadn't moved.",
+      "What's a decision in your portfolio you'd make differently today? Why didn't you make it then?",
+      "Tell me about a time research contradicted a stakeholder's strong opinion. What happened?",
+      "Which case study best shows your judgment, not just your process? Why that one?",
+      "Describe a project where you had to choose between two genuinely good solutions. How did you decide?"
+    ]
+  },
+  research: {
+    label: "Research & methods",
+    questions: [
+      "How do you decide between qualitative and quantitative methods for a given question?",
+      "Tell me about a time your research findings got ignored. What did you do?",
+      "How do you know when you have 'enough' participants in a study?",
+      "Describe a study where your initial hypothesis was wrong. How did you find out, and what changed?",
+      "How do you handle a stakeholder who wants to skip research and go straight to design?",
+      "What's a research method you've stopped using, and why?"
+    ]
+  },
+  critique: {
+    label: "Design critique / judgment",
+    questions: [
+      "Critique a product you use every day. What's one decision you'd change, and why?",
+      "When do you say no to a stakeholder's design request?",
+      "How do you tell the difference between a genuinely better design and one you simply prefer?",
+      "Tell me about feedback that changed your mind about a design. What made it convincing?",
+      "What's a design pattern you think is overused? When would you still reach for it?",
+      "How do you critique a junior designer's work without shutting them down?"
+    ]
+  },
+  systems: {
+    label: "Systems & IA thinking",
+    questions: [
+      "How would you structure navigation for a product with three very different user types?",
+      "Walk me through how you'd design a permissions model without designing every screen first.",
+      "How do you decide what belongs in a design system versus what stays a one-off?",
+      "Describe a time inconsistency across a product caused a real user problem.",
+      "How do you think about scale when a feature works for 10 users but needs to work for 10 million?",
+      "What's the difference between organising information for findability and organising it for understanding?"
+    ]
+  },
+  behavioral: {
+    label: "Behavioral / leadership",
+    questions: [
+      "Tell me about a time you disagreed with your manager on a design decision. What did you do?",
+      "Describe a project that failed. What was your role in why it failed?",
+      "How do you influence a decision when you don't have formal authority?",
+      "Tell me about a time you had to say 'we're not ready to ship.'",
+      "How do you handle a designer on your team who isn't performing?",
+      "Describe a time you changed your mind in front of a room. What did that cost you?"
+    ]
+  }
+};
+
+let currentRound = "portfolio";
+let currentIndex = 0;
+let currentQuestion = "";
+
+const roundsEl = document.getElementById("rounds");
+const roundLabelEl = document.getElementById("roundLabel");
+const questionTextEl = document.getElementById("questionText");
+const questionCardEl = document.getElementById("questionCard");
+const answerBox = document.getElementById("answerBox");
+const wordCountEl = document.getElementById("wordCount");
+const prevQBtn = document.getElementById("prevQBtn");
+const nextQBtn = document.getElementById("nextQBtn");
+const scoreBtn = document.getElementById("scoreBtn");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalClose = document.getElementById("modalClose");
+const modalDoneBtn = document.getElementById("modalDoneBtn");
+const followupBox = document.getElementById("followupBox");
+const bandTagEl = document.getElementById("bandTag");
+const feedbackTextEl = document.getElementById("feedbackText");
+const followupTextEl = document.getElementById("followupText");
+const errorTextEl = document.getElementById("errorText");
+
+function openModal() { modalOverlay.classList.add("visible"); }
+function closeModal() { modalOverlay.classList.remove("visible"); }
+modalClose.addEventListener("click", closeModal);
+modalDoneBtn.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+});
+
+function useFollowUpQuestion() {
+  const followUp = followupTextEl.textContent.trim();
+  if (!followUp) return;
+  currentQuestion = followUp;
+  roundLabelEl.textContent = "Follow-up question";
+  questionTextEl.textContent = "\u201C" + followUp + "\u201D";
+  answerBox.value = "";
+  updateWordCount();
+  closeModal();
+}
+followupBox.addEventListener("click", useFollowUpQuestion);
+
+function renderPills() {
+  roundsEl.innerHTML = "";
+  Object.keys(ROUNDS).forEach(key => {
+    const pill = document.createElement("button");
+    pill.className = "round-pill" + (key === currentRound ? " active" : "");
+    pill.textContent = ROUNDS[key].label;
+    pill.onclick = () => {
+      currentRound = key;
+      currentIndex = 0;
+      renderPills();
+      renderQuestion();
+    };
+    roundsEl.appendChild(pill);
+  });
+}
+
+function renderQuestion() {
+  const pool = ROUNDS[currentRound].questions;
+  currentQuestion = pool[currentIndex];
+  roundLabelEl.textContent = ROUNDS[currentRound].label + " · " + (currentIndex + 1) + "/" + pool.length;
+  questionTextEl.textContent = "\u201C" + currentQuestion + "\u201D";
+  answerBox.value = "";
+  updateWordCount();
+  closeModal();
+}
+
+function nextQuestion() {
+  const pool = ROUNDS[currentRound].questions;
+  currentIndex = (currentIndex + 1) % pool.length;
+  renderQuestion();
+}
+
+function prevQuestion() {
+  const pool = ROUNDS[currentRound].questions;
+  currentIndex = (currentIndex - 1 + pool.length) % pool.length;
+  renderQuestion();
+}
+
+function updateWordCount() {
+  const words = answerBox.value.trim().split(/\s+/).filter(Boolean).length;
+  wordCountEl.textContent = words + (words === 1 ? " word" : " words");
+  scoreBtn.disabled = answerBox.value.trim().length === 0;
+}
+
+answerBox.addEventListener("input", updateWordCount);
+nextQBtn.addEventListener("click", nextQuestion);
+prevQBtn.addEventListener("click", prevQuestion);
+
+let touchStartX = 0;
+questionCardEl.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+questionCardEl.addEventListener("touchend", (e) => {
+  const diff = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(diff) > 40) {
+    if (diff < 0) nextQuestion(); else prevQuestion();
+  }
+});
+
+const tipIcon = document.getElementById("tipIcon");
+if (tipIcon) {
+  tipIcon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    tipIcon.classList.toggle("show");
+  });
+  document.addEventListener("click", () => tipIcon.classList.remove("show"));
+}
+
+function bandClass(band) {
+  if (band === "Strong signal") return "band-strong";
+  if (band === "Developing") return "band-developing";
+  if (band === "Off-topic") return "band-offtopic";
+  return "band-needs-work";
+}
+
+async function scoreAnswer() {
+  const answer = answerBox.value.trim();
+  errorTextEl.style.display = "none";
+  if (!answer) {
+    errorTextEl.textContent = "Write an answer first — even a rough one.";
+    errorTextEl.style.display = "block";
+    bandTagEl.style.display = "none";
+    feedbackTextEl.textContent = "";
+    followupTextEl.textContent = "";
+    openModal();
+    return;
+  }
+
+  scoreBtn.disabled = true;
+  scoreBtn.textContent = "Scoring…";
+  bandTagEl.style.display = "inline-block";
+
+  try {
+    const response = await fetch("/.netlify/functions/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        round: ROUNDS[currentRound].label,
+        question: currentQuestion,
+        answer: answer
+      })
+    });
+
+    if (!response.ok) throw new Error("Request failed");
+
+    const parsed = await response.json();
+
+    bandTagEl.textContent = parsed.band;
+    bandTagEl.className = "band-tag " + bandClass(parsed.band);
+    feedbackTextEl.textContent = parsed.feedback;
+    followupTextEl.textContent = parsed.followUp;
+    openModal();
+  } catch (err) {
+    console.error("Scoring error:", err);
+    bandTagEl.style.display = "none";
+    feedbackTextEl.textContent = "";
+    followupTextEl.textContent = "";
+    errorTextEl.textContent = "Couldn't score that answer just now. Try again in a moment.";
+    errorTextEl.style.display = "block";
+    openModal();
+  } finally {
+    scoreBtn.disabled = false;
+    scoreBtn.textContent = "Score my answer";
+  }
+}
+
+scoreBtn.addEventListener("click", scoreAnswer);
+
+renderPills();
+renderQuestion();
+</script>
+
+</body>
+</html>
