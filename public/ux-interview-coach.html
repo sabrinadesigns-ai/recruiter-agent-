@@ -424,6 +424,69 @@
     text-align: center;
   }
 
+  /* Save session */
+  .save-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .save-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .save-btn:hover { background: var(--surface-1); }
+  .save-icon { font-size: 12px; }
+  .save-note {
+    font-size: 12px;
+    color: var(--success-text);
+    margin: 0;
+  }
+  .save-form {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .save-form-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0 0 8px;
+  }
+  .save-form-row {
+    display: flex;
+    gap: 8px;
+  }
+  .email-input {
+    flex: 1;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: #FFFFFF;
+  }
+  .email-input:focus {
+    outline: none;
+    border-color: var(--rose);
+  }
+  .save-submit-btn {
+    border-radius: 8px;
+    padding: 10px 18px;
+    white-space: nowrap;
+  }
+  .save-privacy {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 8px 0 0;
+  }
+
   footer {
     margin-top: 3rem;
     padding-top: 1.5rem;
@@ -498,6 +561,23 @@
       <span class="followup-cta">Tap to answer this instead →</span>
     </div>
     <p class="error-text" id="errorText" style="display:none;"></p>
+
+    <div class="save-row" id="saveRow">
+      <button class="save-btn" id="saveBtn" aria-label="Save this session">
+        <span class="save-icon">⬇</span> <span id="saveBtnLabel">Save my answers</span>
+      </button>
+      <p class="save-note" id="saveNote"></p>
+    </div>
+
+    <div class="save-form" id="saveForm" style="display:none;">
+      <p class="save-form-label">Where should we send it?</p>
+      <div class="save-form-row">
+        <input type="email" id="emailInput" class="email-input" placeholder="you@email.com">
+        <button class="btn-primary save-submit-btn" id="saveSubmitBtn">Send</button>
+      </div>
+      <p class="save-privacy">Used only to send you this transcript — nothing else.</p>
+    </div>
+
     <button class="btn-primary modal-done-btn" id="modalDoneBtn">Got it</button>
   </div>
 </div>
@@ -564,6 +644,8 @@ const ROUNDS = {
 let currentRound = "portfolio";
 let currentIndex = 0;
 let currentQuestion = "";
+let sessionLog = [];
+let savedEmail = null;
 
 const roundsEl = document.getElementById("rounds");
 const roundLabelEl = document.getElementById("roundLabel");
@@ -582,6 +664,13 @@ const bandTagEl = document.getElementById("bandTag");
 const feedbackTextEl = document.getElementById("feedbackText");
 const followupTextEl = document.getElementById("followupText");
 const errorTextEl = document.getElementById("errorText");
+const saveBtn = document.getElementById("saveBtn");
+const saveBtnLabel = document.getElementById("saveBtnLabel");
+const saveNote = document.getElementById("saveNote");
+const saveRow = document.getElementById("saveRow");
+const saveForm = document.getElementById("saveForm");
+const emailInput = document.getElementById("emailInput");
+const saveSubmitBtn = document.getElementById("saveSubmitBtn");
 
 function openModal() { modalOverlay.classList.add("visible"); }
 function closeModal() { modalOverlay.classList.remove("visible"); }
@@ -681,6 +770,68 @@ function bandClass(band) {
   return "band-needs-work";
 }
 
+function resetSaveUI() {
+  saveForm.style.display = "none";
+  saveNote.textContent = "";
+  saveBtnLabel.textContent = savedEmail
+    ? "Update my saved answers"
+    : "Save my answers";
+  saveRow.style.display = sessionLog.length === 0 ? "none" : "flex";
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+async function sendTranscript(email) {
+  saveSubmitBtn.disabled = true;
+  saveSubmitBtn.textContent = "Sending…";
+  try {
+    const response = await fetch("/.netlify/functions/save-transcript", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, sessionLog })
+    });
+    if (!response.ok) throw new Error("Save failed");
+
+    savedEmail = email;
+    saveForm.style.display = "none";
+    saveNote.textContent = "Sent to " + email + " ✓";
+    saveBtnLabel.textContent = "Update my saved answers";
+  } catch (err) {
+    console.error("Save transcript error:", err);
+    saveNote.textContent = "";
+    saveForm.style.display = "block";
+    emailInput.setAttribute("data-error", "1");
+  } finally {
+    saveSubmitBtn.disabled = false;
+    saveSubmitBtn.textContent = "Send";
+  }
+}
+
+saveBtn.addEventListener("click", () => {
+  if (savedEmail) {
+    sendTranscript(savedEmail);
+    return;
+  }
+  saveForm.style.display = saveForm.style.display === "none" ? "block" : "none";
+  if (saveForm.style.display === "block") emailInput.focus();
+});
+
+saveSubmitBtn.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  if (!isValidEmail(email)) {
+    emailInput.style.borderColor = "var(--danger-text)";
+    return;
+  }
+  emailInput.style.borderColor = "";
+  sendTranscript(email);
+});
+
+emailInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") saveSubmitBtn.click();
+});
+
 async function scoreAnswer() {
   const answer = answerBox.value.trim();
   errorTextEl.style.display = "none";
@@ -717,6 +868,18 @@ async function scoreAnswer() {
     bandTagEl.className = "band-tag " + bandClass(parsed.band);
     feedbackTextEl.textContent = parsed.feedback;
     followupTextEl.textContent = parsed.followUp;
+
+    if (parsed.band !== "Off-topic") {
+      sessionLog.push({
+        round: ROUNDS[currentRound].label,
+        question: currentQuestion,
+        answer: answer,
+        band: parsed.band,
+        feedback: parsed.feedback,
+        followUp: parsed.followUp
+      });
+    }
+    resetSaveUI();
     openModal();
   } catch (err) {
     console.error("Scoring error:", err);
@@ -736,6 +899,7 @@ scoreBtn.addEventListener("click", scoreAnswer);
 
 renderPills();
 renderQuestion();
+resetSaveUI();
 </script>
 
 </body>
