@@ -36,7 +36,7 @@ ${trimmedBrief}
 """
 ` : ''}
 Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation outside the JSON. Use exactly this shape:
-{"band": "Off-topic" | "Strong signal" | "Developing" | "Needs work", "feedback": "2-3 direct sentences naming what's present and what's missing in THIS specific answer${trimmedBrief ? ', including whether it addresses what the job brief specifically needs' : ''} — coach tone, straight to the point", "followUp": "one sharper follow-up question a real panelist would ask next, based on a gap in this answer — or, if off-topic, the original question restated plainly"}`;
+{"band": "Off-topic" | "Strong signal" | "Developing" | "Needs work", "headline": "one short punchy sentence (under 15 words) capturing the single biggest takeaway, prefixed with one emoji that matches the tone — 👍 for Strong signal, 🤔 for Developing, 🚩 for Needs work, ❓ for Off-topic", "feedback": "2-3 direct sentences naming what's present and what's missing in THIS specific answer${trimmedBrief ? ', including whether it addresses what the job brief specifically needs' : ''} — coach tone, straight to the point", "followUp": "one sharper follow-up question a real panelist would ask next, based on a gap in this answer — or, if off-topic, the original question restated plainly"}`;
 
   const userPrompt = `Interview round: ${round}\nQuestion asked: "${question}"\nCandidate's answer: "${answer}"`;
 
