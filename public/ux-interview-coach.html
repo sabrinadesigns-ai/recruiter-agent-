@@ -390,17 +390,6 @@
     color: var(--success-text);
     margin: 0 0 0.6rem;
   }
-  .gap-line {
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--text-primary);
-    background: var(--warning-bg);
-    border: 0.5px solid var(--warning-border);
-    border-radius: 10px;
-    padding: 0.55rem 0.8rem;
-    margin: 0 0 1rem;
-  }
-  .gap-line strong { color: var(--warning-text); }
 
   .feedback-text {
     font-size: 15px;
@@ -624,7 +613,6 @@
     <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     <span class="band-tag" id="bandTag">—</span>
     <p class="strength-text" id="strengthText" style="display:none;"></p>
-    <p class="gap-line" id="gapLine" style="display:none;"><strong>Missing:</strong> <span id="gapDetail"></span></p>
     <p class="feedback-text" id="feedbackText"></p>
     <div class="followup" id="followupBox">
       <p class="followup-label">What a real panel would ask next</p>
@@ -743,8 +731,6 @@ const followupBox = document.getElementById("followupBox");
 const bandTagEl = document.getElementById("bandTag");
 const feedbackTextEl = document.getElementById("feedbackText");
 const strengthTextEl = document.getElementById("strengthText");
-const gapLineEl = document.getElementById("gapLine");
-const gapDetailEl = document.getElementById("gapDetail");
 const followupTextEl = document.getElementById("followupText");
 const errorTextEl = document.getElementById("errorText");
 const saveBtn = document.getElementById("saveBtn");
@@ -948,7 +934,6 @@ async function scoreAnswer() {
     errorTextEl.style.display = "block";
     bandTagEl.style.display = "none";
     strengthTextEl.style.display = "none";
-    gapLineEl.style.display = "none";
     feedbackTextEl.textContent = "";
     followupTextEl.textContent = "";
     openModal();
@@ -979,17 +964,10 @@ async function scoreAnswer() {
     bandTagEl.className = "band-tag " + bandClass(parsed.band);
 
     if (parsed.strength) {
-      strengthTextEl.textContent = "\u2713 " + parsed.strength;
+      strengthTextEl.textContent = "+ " + parsed.strength;
       strengthTextEl.style.display = "block";
     } else {
       strengthTextEl.style.display = "none";
-    }
-
-    if (parsed.gap) {
-      gapDetailEl.textContent = parsed.gap;
-      gapLineEl.style.display = "block";
-    } else {
-      gapLineEl.style.display = "none";
     }
 
     feedbackTextEl.textContent = parsed.feedback;
@@ -1029,7 +1007,6 @@ async function scoreAnswer() {
     console.error("Scoring error:", err);
     bandTagEl.style.display = "none";
     strengthTextEl.style.display = "none";
-    gapLineEl.style.display = "none";
     feedbackTextEl.textContent = "";
     followupTextEl.textContent = "";
     errorTextEl.textContent = "Couldn't score that answer just now. Try again in a moment.";
