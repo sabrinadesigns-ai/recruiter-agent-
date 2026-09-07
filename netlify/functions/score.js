@@ -1,182 +1,1059 @@
-exports.handler = async function (event) {
-  if (event.httpMethod !== "POST") {
-    return { statusCode: 405, body: "Method Not Allowed" };
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>UX Interview Coach</title>
+
+<!-- Open Graph / social preview -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="UX Interview Coach">
+<meta property="og:description" content="Practice defending your decisions — not just describing them.">
+<meta property="og:image" content="https://chat.sabrinadesigns.ai/ux-interview-coach-og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://chat.sabrinadesigns.ai/ux-interview-coach">
+<meta property="og:site_name" content="Sabrina Staniewska">
+
+<!-- Google Analytics (GA4) -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-HQWZ25JWW9"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-HQWZ25JWW9');
+</script>
+
+<!-- Twitter Card (falls back for platforms that check it) -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="UX Interview Coach">
+<meta name="twitter:description" content="Practice defending your decisions — not just describing them.">
+<meta name="twitter:image" content="https://chat.sabrinadesigns.ai/ux-interview-coach-og.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:ital,wght@0,400;0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #F8F7F4;
+    --surface-1: #F2F1EE;
+    --surface-2: #ECEAE6;
+    --text-primary: #1A1A1A;
+    --text-secondary: #666666;
+    --text-muted: #999999;
+    --border: #E5E5E5;
+    --border-strong: #CCCCCC;
+    --rose: #E91E6B;
+    --rose-bg: #FDEAF1;
+    --accent-text: #1A5FA8;
+    --accent-bg: #EBF2FB;
+    --accent-border: #B5D0F0;
+    --success-text: #1A7A3A;
+    --success-bg: #EBF7EF;
+    --success-border: #A8D5B5;
+    --warning-text: #8A5C0A;
+    --warning-bg: #FEF6E7;
+    --warning-border: #F0C97A;
+    --danger-text: #CC3300;
+    --danger-bg: #FDF0EC;
+    --danger-border: #F5B8A5;
+    --font-sans: 'Inter', system-ui, -apple-system, Arial, sans-serif;
+    --font-voice: 'Inter', system-ui, -apple-system, Arial, sans-serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    background: linear-gradient(160deg, #FA7295 0%, #FAD772 100%);
+    background-attachment: fixed;
+    font-family: var(--font-sans);
+    color: var(--text-primary);
+    -webkit-font-smoothing: antialiased;
   }
 
-  let payload;
+  /* Hero band */
+  .hero-band {
+    padding: 1.5rem 1.25rem 0.85rem;
+  }
+  .hero-inner {
+    max-width: 640px;
+    margin: 0 auto;
+  }
+  h1 {
+    font-size: 26px;
+    font-weight: 700;
+    line-height: 1.25;
+    margin: 0 0 4px;
+    color: #1A1A1A;
+  }
+  .sub {
+    font-size: 13px;
+    color: rgba(26,26,26,0.72);
+    line-height: 1.4;
+    max-width: 440px;
+    margin: 0;
+  }
+  .hero-divider {
+    width: 48px;
+    height: 2px;
+    background: rgba(26,26,26,0.28);
+    border-radius: 2px;
+    margin-top: 16px;
+  }
+
+  .wrap {
+    max-width: 640px;
+    margin: 0 auto;
+    padding: 0 1.25rem 4rem;
+  }
+
+  /* Round picker */
+  .rounds {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin: 0.75rem 0 1rem;
+  }
+
+  /* Job brief (optional) */
+  .brief-toggle {
+    background: rgba(255,255,255,0.55);
+    border: 1.5px solid rgba(26,26,26,0.35);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    border-radius: 16px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 1.25rem;
+    transition: background 150ms;
+  }
+  .brief-toggle:hover { background: rgba(255,255,255,0.85); }
+  .brief-section {
+    margin-top: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .brief-textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(26,26,26,0.2);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+  .brief-textarea:focus {
+    outline: none;
+    border-color: var(--rose);
+  }
+  .brief-textarea::placeholder { color: rgba(26,26,26,0.5); font-style: italic; }
+  .round-pill {
+    font-size: 13px;
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 0.5px solid rgba(26,26,26,0.15);
+    color: var(--text-primary);
+    background: rgba(255,255,255,0.55);
+    cursor: pointer;
+    font-family: var(--font-sans);
+    transition: border-color 150ms, color 150ms, background 150ms;
+  }
+  .round-pill:hover { background: rgba(255,255,255,0.8); }
+  .round-pill.active {
+    background: #FFFFFF;
+    color: var(--rose);
+    border-color: #FFFFFF;
+    font-weight: 600;
+  }
+
+  /* Instruction block */
+  .tip-list { display: none; }
+
+  /* Question card */
+  .question-row {
+    position: relative;
+    margin-bottom: 1rem;
+  }
+  .card-wrap {
+    width: 100%;
+    padding: 2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FA7295 0%, #FAD772 100%);
+  }
+  .nav-arrow {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 2;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #FFFFFF;
+    border: none;
+    box-shadow: 0 3px 10px rgba(26,26,26,0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    padding: 0;
+    transition: transform 150ms, box-shadow 150ms;
+  }
+  .nav-arrow:hover {
+    box-shadow: 0 4px 14px rgba(26,26,26,0.24);
+    transform: translateY(-50%) scale(1.06);
+  }
+  .nav-arrow.left { left: -17px; }
+  .nav-arrow.right { right: -17px; }
+  .nav-arrow .triangle { width: 0; height: 0; }
+  .nav-arrow.left .triangle {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-right: 9px solid var(--rose);
+    margin-right: 2px;
+  }
+  .nav-arrow.right .triangle {
+    border-top: 6px solid transparent;
+    border-bottom: 6px solid transparent;
+    border-left: 9px solid var(--rose);
+    margin-left: 2px;
+  }
+  .question-card {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 0.85rem 1.75rem;
+  }
+  .question-tag {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 8px;
+  }
+  .question-text {
+    font-family: var(--font-voice);
+    font-style: italic;
+    font-size: 17px;
+    font-weight: 500;
+    line-height: 1.4;
+    color: var(--text-primary);
+    margin: 0;
+  }
+
+  /* Answer area */
+  .field-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(26,26,26,0.75);
+    margin: 0 0 6px;
+  }
+  .field-label-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .field-label-row .field-label { margin-bottom: 0; }
+  .field-label-right {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .word-count { font-size: 11px; color: rgba(26,26,26,0.55); }
+  .tooltip-icon {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: rgba(26,26,26,0.15);
+    color: var(--text-primary);
+    font-size: 11px;
+    cursor: help;
+  }
+  .tooltip-text {
+    visibility: hidden;
+    opacity: 0;
+    position: absolute;
+    bottom: 130%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--text-primary);
+    color: #FFFFFF;
+    padding: 10px 12px;
+    border-radius: 10px;
+    font-size: 12px;
+    line-height: 1.5;
+    width: 220px;
+    text-align: left;
+    transition: opacity 150ms;
+    z-index: 10;
+  }
+  .tooltip-icon:hover .tooltip-text,
+  .tooltip-icon.show .tooltip-text {
+    visibility: visible;
+    opacity: 1;
+  }
+  .textarea-wrap {
+    padding: 2px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, #FA7295 0%, #FAD772 100%);
+    margin-bottom: 0.5rem;
+  }
+  textarea {
+    display: block;
+    width: 100%;
+    min-height: 190px;
+    resize: vertical;
+    background: #FFFFFF;
+    border: none;
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    font-family: var(--font-sans);
+    font-size: 15px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    box-shadow: 0 1px 2px rgba(26,26,26,0.04);
+  }
+  textarea:focus {
+    outline: none;
+  }
+  textarea::placeholder { color: var(--text-muted); font-style: italic; }
+
+  .action-row {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  button {
+    font-family: var(--font-sans);
+    font-size: 14px;
+    font-weight: 500;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms, opacity 150ms;
+  }
+  .btn-secondary {
+    background: rgba(255,255,255,0.55);
+    border: 1.5px solid rgba(26,26,26,0.35);
+    color: var(--text-primary);
+    border-radius: 16px;
+  }
+  .btn-secondary:hover { background: rgba(255,255,255,0.8); }
+  .btn-primary {
+    background: var(--rose);
+    border: none;
+    color: #FFFFFF;
+    border-radius: 16px;
+    padding: 12px 24px;
+  }
+  .btn-primary:hover { background: #C11259; }
+  .btn-primary:disabled {
+    opacity: 0.55;
+    cursor: default;
+  }
+
+  /* Modal */
+  .modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(26,26,26,0.55);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 1.25rem;
+    z-index: 100;
+  }
+  .modal-overlay.visible {
+    display: flex;
+    animation: fadeIn 150ms ease-out;
+  }
+  @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+  .modal-box {
+    background: #FFFFFF;
+    border-radius: 16px;
+    padding: 1.75rem;
+    max-width: 460px;
+    width: 100%;
+    max-height: 85vh;
+    overflow-y: auto;
+    position: relative;
+    box-shadow: 0 24px 60px rgba(26,26,26,0.35);
+  }
+  .modal-close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: var(--surface-2);
+    border: none;
+    font-size: 15px;
+    line-height: 1;
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .modal-close:hover { background: var(--surface-1); color: var(--text-primary); }
+  .band-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    padding: 3px 11px;
+    border-radius: 20px;
+    margin-bottom: 14px;
+    margin-right: 24px;
+  }
+  .band-strong { background: var(--success-bg); color: var(--success-text); border: 0.5px solid var(--success-border); }
+  .band-developing { background: var(--warning-bg); color: var(--warning-text); border: 0.5px solid var(--warning-border); }
+  .band-needs-work { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
+  .band-offtopic { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border-strong); }
+
+  .feedback-text {
+    font-size: 15px;
+    line-height: 1.7;
+    color: var(--text-primary);
+    margin: 0 0 1.1rem;
+  }
+  .followup {
+    background: var(--surface-2);
+    border: 0.5px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+    cursor: pointer;
+    transition: background 150ms, border-color 150ms;
+  }
+  .followup:hover {
+    background: var(--surface-1);
+    border-color: var(--border-strong);
+  }
+  .followup-cta {
+    display: block;
+    font-size: 11px;
+    color: var(--rose);
+    font-weight: 500;
+    margin-top: 8px;
+  }
+  .followup-label {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    margin-bottom: 6px;
+  }
+  .followup-text {
+    font-family: var(--font-voice);
+    font-style: italic;
+    font-size: 15px;
+    color: var(--text-primary);
+    margin: 0;
+    line-height: 1.5;
+  }
+  .error-text {
+    font-size: 13px;
+    color: var(--danger-text);
+    margin-top: 10px;
+  }
+  .modal-done-btn {
+    width: 100%;
+    text-align: center;
+  }
+
+  /* Save session */
+  .save-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .save-btn {
+    background: transparent;
+    border: 1px solid var(--border-strong);
+    color: var(--text-primary);
+    border-radius: 20px;
+    padding: 8px 16px;
+    font-size: 13px;
+  }
+  .save-btn:hover { background: var(--surface-1); }
+  .save-icon { font-size: 12px; }
+  .save-note {
+    font-size: 12px;
+    color: var(--success-text);
+    margin: 0;
+  }
+  .save-success {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    background: var(--success-bg);
+    border: 0.5px solid var(--success-border);
+    border-radius: 12px;
+    padding: 0.9rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .save-success-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--success-text);
+    color: #FFFFFF;
+    font-size: 12px;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+  }
+  .save-success-title {
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--success-text);
+    margin: 0 0 3px;
+  }
+  .save-success-sub {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin: 0;
+  }
+  .save-error {
+    font-size: 12px;
+    color: var(--danger-text);
+    margin: 8px 0 0;
+    display: none;
+  }
+  .save-form {
+    background: var(--surface-1);
+    border-radius: 12px;
+    padding: 1rem 1.1rem;
+    margin-bottom: 1.25rem;
+  }
+  .save-form-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin: 0 0 8px;
+  }
+  .save-form-row {
+    display: flex;
+    gap: 8px;
+  }
+  .email-input {
+    flex: 1;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 10px 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    color: var(--text-primary);
+    background: #FFFFFF;
+  }
+  .email-input:focus {
+    outline: none;
+    border-color: var(--rose);
+  }
+  .save-submit-btn {
+    border-radius: 8px;
+    padding: 10px 18px;
+    white-space: nowrap;
+  }
+  .save-privacy {
+    font-size: 11px;
+    color: var(--text-muted);
+    margin: 8px 0 0;
+  }
+
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 0.5px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  @media (max-width: 480px) {
+    h1 { font-size: 22px; }
+    .question-text { font-size: 17px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="hero-band">
+  <div class="hero-inner">
+    <h1>UX Interview Coach</h1>
+    <p class="sub">Practice defending your decisions — not just describing them.</p>
+    <div class="hero-divider"></div>
+  </div>
+</div>
+
+<div class="wrap">
+
+  <p class="field-label">1. Choose topic</p>
+  <div class="rounds" id="rounds"></div>
+
+  <p class="field-label">2. Add a job brief (optional)</p>
+  <button type="button" class="brief-toggle" id="briefToggle">+ Add a job brief</button>
+  <div class="brief-section" id="briefSection" style="display:none;">
+    <textarea id="jobBriefInput" class="brief-textarea" placeholder="Paste the job ad or brief here — your answers will also get scored against what this specific role needs, not just general judgment."></textarea>
+  </div>
+
+  <p class="field-label">3. Interview question</p>
+  <div class="question-row">
+    <button class="nav-arrow left" id="prevQBtn" aria-label="Previous question"><span class="triangle"></span></button>
+    <div class="card-wrap">
+      <div class="question-card" id="questionCard">
+        <p class="question-tag" id="roundLabel">Round</p>
+        <p class="question-text" id="questionText">Loading…</p>
+      </div>
+    </div>
+    <button class="nav-arrow right" id="nextQBtn" aria-label="Next question"><span class="triangle"></span></button>
+  </div>
+
+  <div class="field-label-row">
+    <p class="field-label">4. Your answer</p>
+    <div class="field-label-right">
+      <span class="word-count" id="wordCount">0 words</span>
+      <span class="tooltip-icon" id="tipIcon">i<span class="tooltip-text">Name the decision, say what you rejected, and defend the choice. A list of steps reads junior. A defended fork reads senior.</span></span>
+    </div>
+  </div>
+  <div class="textarea-wrap">
+    <textarea id="answerBox" placeholder="Structure your answer here. Name the fork, then defend your side of it — an interviewer is scoring your judgment, not whether you land the &quot;correct&quot; answer."></textarea>
+  </div>
+
+  <div class="action-row">
+    <button class="btn-primary" id="scoreBtn" disabled>Score my answer</button>
+  </div>
+
+  <footer>
+    Content is generated and unverified. Built as a practice tool — not a substitute for mock interviews with real people.
+    <br>A tool by Sabrina Staniewska — <a href="https://sabrinadesigns.ai" target="_blank" rel="noopener" style="color:var(--rose);text-decoration:none;font-weight:500;">sabrinadesigns.ai</a>
+  </footer>
+
+</div>
+
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal-box">
+    <button class="modal-close" id="modalClose" aria-label="Close">×</button>
+    <span class="band-tag" id="bandTag">—</span>
+    <p class="feedback-text" id="feedbackText"></p>
+    <div class="followup" id="followupBox">
+      <p class="followup-label">What a real panel would ask next</p>
+      <p class="followup-text" id="followupText"></p>
+      <span class="followup-cta">Tap to answer this instead →</span>
+    </div>
+    <p class="error-text" id="errorText" style="display:none;"></p>
+
+    <div class="save-row" id="saveRow">
+      <button class="save-btn" id="saveBtn" aria-label="Save this session">
+        <span class="save-icon">⬇</span> <span id="saveBtnLabel">Save my answers</span>
+      </button>
+    </div>
+
+    <div class="save-success" id="saveSuccess" style="display:none;">
+      <span class="save-success-icon">✓</span>
+      <div>
+        <p class="save-success-title" id="saveSuccessTitle"></p>
+        <p class="save-success-sub" id="saveSuccessSub">We'll send the full session again automatically when you close this tab.</p>
+      </div>
+    </div>
+
+    <div class="save-form" id="saveForm" style="display:none;">
+      <p class="save-form-label">We'll email you what you've answered so far right now — and automatically send the complete session when you close this tab.</p>
+      <div class="save-form-row">
+        <input type="email" id="emailInput" class="email-input" placeholder="you@email.com">
+        <button class="btn-primary save-submit-btn" id="saveSubmitBtn">Send</button>
+      </div>
+      <p class="save-privacy">Used only for this transcript — sent now, and again automatically when you close the tab.</p>
+      <p class="save-error" id="saveError"></p>
+    </div>
+
+    <button class="btn-primary modal-done-btn" id="modalDoneBtn">Got it</button>
+  </div>
+</div>
+
+<script>
+const ROUNDS = {
+  portfolio: {
+    label: "Portfolio / case study deep-dive",
+    questions: [
+      "Walk me through a project where the data told you something you didn't expect. What did you do next?",
+      "Pick a project and tell me about a decision you'd defend even if the metrics hadn't moved.",
+      "What's a decision in your portfolio you'd make differently today? Why didn't you make it then?",
+      "Tell me about a time research contradicted a stakeholder's strong opinion. What happened?",
+      "Which case study best shows your judgment, not just your process? Why that one?",
+      "Describe a project where you had to choose between two genuinely good solutions. How did you decide?"
+    ]
+  },
+  research: {
+    label: "Research & methods",
+    questions: [
+      "How do you decide between qualitative and quantitative methods for a given question?",
+      "Tell me about a time your research findings got ignored. What did you do?",
+      "How do you know when you have 'enough' participants in a study?",
+      "Describe a study where your initial hypothesis was wrong. How did you find out, and what changed?",
+      "How do you handle a stakeholder who wants to skip research and go straight to design?",
+      "What's a research method you've stopped using, and why?"
+    ]
+  },
+  critique: {
+    label: "Design critique / judgment",
+    questions: [
+      "Critique a product you use every day. What's one decision you'd change, and why?",
+      "When do you say no to a stakeholder's design request?",
+      "How do you tell the difference between a genuinely better design and one you simply prefer?",
+      "Tell me about feedback that changed your mind about a design. What made it convincing?",
+      "What's a design pattern you think is overused? When would you still reach for it?",
+      "How do you critique a junior designer's work without shutting them down?"
+    ]
+  },
+  systems: {
+    label: "Systems & IA thinking",
+    questions: [
+      "How would you structure navigation for a product with three very different user types?",
+      "Walk me through how you'd design a permissions model without designing every screen first.",
+      "How do you decide what belongs in a design system versus what stays a one-off?",
+      "Describe a time inconsistency across a product caused a real user problem.",
+      "How do you think about scale when a feature works for 10 users but needs to work for 10 million?",
+      "What's the difference between organising information for findability and organising it for understanding?"
+    ]
+  },
+  behavioral: {
+    label: "Behavioral / leadership",
+    questions: [
+      "Tell me about a time you disagreed with your manager on a design decision. What did you do?",
+      "Describe a project that failed. What was your role in why it failed?",
+      "How do you influence a decision when you don't have formal authority?",
+      "Tell me about a time you had to say 'we're not ready to ship.'",
+      "How do you handle a designer on your team who isn't performing?",
+      "Describe a time you changed your mind in front of a room. What did that cost you?"
+    ]
+  }
+};
+
+let currentRound = "portfolio";
+let currentIndex = 0;
+let currentQuestion = "";
+let sessionLog = [];
+let savedEmail = null;
+
+const roundsEl = document.getElementById("rounds");
+const roundLabelEl = document.getElementById("roundLabel");
+const questionTextEl = document.getElementById("questionText");
+const questionCardEl = document.getElementById("questionCard");
+const answerBox = document.getElementById("answerBox");
+const wordCountEl = document.getElementById("wordCount");
+const prevQBtn = document.getElementById("prevQBtn");
+const nextQBtn = document.getElementById("nextQBtn");
+const scoreBtn = document.getElementById("scoreBtn");
+const modalOverlay = document.getElementById("modalOverlay");
+const modalClose = document.getElementById("modalClose");
+const modalDoneBtn = document.getElementById("modalDoneBtn");
+const followupBox = document.getElementById("followupBox");
+const bandTagEl = document.getElementById("bandTag");
+const feedbackTextEl = document.getElementById("feedbackText");
+const followupTextEl = document.getElementById("followupText");
+const errorTextEl = document.getElementById("errorText");
+const briefToggle = document.getElementById("briefToggle");
+const briefSection = document.getElementById("briefSection");
+const jobBriefInput = document.getElementById("jobBriefInput");
+
+briefToggle.addEventListener("click", () => {
+  const isHidden = briefSection.style.display === "none";
+  briefSection.style.display = isHidden ? "block" : "none";
+  briefToggle.textContent = isHidden ? "− Hide job brief" : "+ Add a job brief";
+  if (isHidden) jobBriefInput.focus();
+});
+const saveBtn = document.getElementById("saveBtn");
+const saveBtnLabel = document.getElementById("saveBtnLabel");
+const saveRow = document.getElementById("saveRow");
+const saveSuccess = document.getElementById("saveSuccess");
+const saveSuccessTitle = document.getElementById("saveSuccessTitle");
+const saveForm = document.getElementById("saveForm");
+const saveError = document.getElementById("saveError");
+const emailInput = document.getElementById("emailInput");
+const saveSubmitBtn = document.getElementById("saveSubmitBtn");
+
+function openModal() { modalOverlay.classList.add("visible"); }
+function closeModal() { modalOverlay.classList.remove("visible"); }
+modalClose.addEventListener("click", closeModal);
+modalDoneBtn.addEventListener("click", closeModal);
+modalOverlay.addEventListener("click", (e) => {
+  if (e.target === modalOverlay) closeModal();
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeModal();
+});
+
+function useFollowUpQuestion() {
+  const followUp = followupTextEl.textContent.trim();
+  if (!followUp) return;
+  currentQuestion = followUp;
+  roundLabelEl.textContent = "Follow-up question";
+  questionTextEl.textContent = "\u201C" + followUp + "\u201D";
+  answerBox.value = "";
+  updateWordCount();
+  closeModal();
+}
+followupBox.addEventListener("click", useFollowUpQuestion);
+
+function renderPills() {
+  roundsEl.innerHTML = "";
+  Object.keys(ROUNDS).forEach(key => {
+    const pill = document.createElement("button");
+    pill.className = "round-pill" + (key === currentRound ? " active" : "");
+    pill.textContent = ROUNDS[key].label;
+    pill.onclick = () => {
+      currentRound = key;
+      currentIndex = 0;
+      renderPills();
+      renderQuestion();
+      if (typeof gtag === "function") {
+        gtag('event', 'topic_selected', { topic: ROUNDS[key].label });
+      }
+    };
+    roundsEl.appendChild(pill);
+  });
+}
+
+function renderQuestion() {
+  const pool = ROUNDS[currentRound].questions;
+  currentQuestion = pool[currentIndex];
+  roundLabelEl.textContent = ROUNDS[currentRound].label + " · " + (currentIndex + 1) + "/" + pool.length;
+  questionTextEl.textContent = "\u201C" + currentQuestion + "\u201D";
+  answerBox.value = "";
+  updateWordCount();
+  closeModal();
+}
+
+function nextQuestion() {
+  const pool = ROUNDS[currentRound].questions;
+  currentIndex = (currentIndex + 1) % pool.length;
+  renderQuestion();
+}
+
+function prevQuestion() {
+  const pool = ROUNDS[currentRound].questions;
+  currentIndex = (currentIndex - 1 + pool.length) % pool.length;
+  renderQuestion();
+}
+
+function updateWordCount() {
+  const words = answerBox.value.trim().split(/\s+/).filter(Boolean).length;
+  wordCountEl.textContent = words + (words === 1 ? " word" : " words");
+  scoreBtn.disabled = answerBox.value.trim().length === 0;
+}
+
+answerBox.addEventListener("input", updateWordCount);
+nextQBtn.addEventListener("click", nextQuestion);
+prevQBtn.addEventListener("click", prevQuestion);
+
+let touchStartX = 0;
+questionCardEl.addEventListener("touchstart", (e) => {
+  touchStartX = e.changedTouches[0].screenX;
+}, { passive: true });
+questionCardEl.addEventListener("touchend", (e) => {
+  const diff = e.changedTouches[0].screenX - touchStartX;
+  if (Math.abs(diff) > 40) {
+    if (diff < 0) nextQuestion(); else prevQuestion();
+  }
+});
+
+const tipIcon = document.getElementById("tipIcon");
+if (tipIcon) {
+  tipIcon.addEventListener("click", (e) => {
+    e.stopPropagation();
+    tipIcon.classList.toggle("show");
+  });
+  document.addEventListener("click", () => tipIcon.classList.remove("show"));
+}
+
+function bandClass(band) {
+  if (band === "Strong signal") return "band-strong";
+  if (band === "Developing") return "band-developing";
+  if (band === "Off-topic") return "band-offtopic";
+  return "band-needs-work";
+}
+
+function resetSaveUI() {
+  saveForm.style.display = "none";
+  saveSuccess.style.display = "none";
+  saveError.style.display = "none";
+  saveBtnLabel.textContent = savedEmail
+    ? "Update my saved answers"
+    : "Save my answers";
+  saveRow.style.display = sessionLog.length === 0 ? "none" : "flex";
+}
+
+function isValidEmail(value) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+}
+
+async function sendTranscript(email) {
+  saveSubmitBtn.disabled = true;
+  saveSubmitBtn.textContent = "Sending…";
+  saveError.style.display = "none";
   try {
-    payload = JSON.parse(event.body || "{}");
-  } catch (err) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Invalid request body" }) };
-  }
-
-  const { round, question, answer, priorAttempts } = payload;
-  if (!round || !question || !answer) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Missing round, question, or answer" }) };
-  }
-
-  // Cheap abuse guard: this endpoint is unauthenticated, so cap the size of
-  // anything we're willing to pay Anthropic tokens for. A real spoken
-  // interview answer is well under 400 words / 3000 characters.
-  const MAX_ANSWER_CHARS = 3000;
-  const MAX_QUESTION_CHARS = 500;
-  if (
-    typeof answer !== "string" ||
-    typeof question !== "string" ||
-    typeof round !== "string" ||
-    answer.length > MAX_ANSWER_CHARS ||
-    question.length > MAX_QUESTION_CHARS ||
-    round.length > 120
-  ) {
-    return { statusCode: 400, body: JSON.stringify({ error: "Answer is too long to score — keep it to what you'd actually say out loud." }) };
-  }
-
-  // System prompt embedded directly in this file (not a separate file) —
-  // Netlify does not bundle non-JS files alongside functions.
-  const systemPrompt = `You are a senior UX hiring panelist and coach reviewing a candidate's spoken interview answer for a Director or Senior-level design role.
-
-VOICE — this is the most important instruction. Direct, warm, genuinely invested in this person landing the role. No corporate filler, no generic praise ("great point!", "nice job!"), no fake positivity that papers over a real gap, and never harsh or cold either. Talk like a coach who actually read this specific answer, not a template. React to what's actually in front of you. When priorAttempts includes the feedback you already gave in this thread, do not reuse or echo those openings — the first six words of your feedback must not resemble the first six words of any feedback listed there.
-
-Step 1 — Check whether the answer is a genuine, on-topic attempt.
-- If it is gibberish, a joke, or clearly doesn't engage with the question, use band "Off-topic". strength and gap should both be "". feedback should plainly and calmly state it didn't address the question — no shaming. followUp should restate the original question plainly, prompting a real attempt.
-
-Step 1a — Honest inexperience is NOT off-topic. If the answer engages with the question but says they haven't been in that situation ("I've never managed anyone", "this hasn't come up for me yet"), use band "No experience yet". This is an honest answer and gets coached, never treated as a dodge or a non-attempt. strength: name what's honest or self-aware in how they said it, if there is something. gap: the short phrase naming what a panel still needs from them, which is almost always the hypothetical ("how you'd actually open that conversation"). feedback: tell them plainly that "I haven't hit that" is a fine opening but never a whole answer, and that the move is to take it as a hypothetical or reach for the closest thing they have lived. followUp: convert the question into that hypothetical or adjacent-experience version, concretely.
-
-Step 1b — Check for a repeat. If priorAttempts shows this answer is essentially the same as one already given in this thread (verbatim, or reworded with the same content — compare against every attempt listed, not just the most recent), use band "Repeated" — this is a different situation from "Off-topic" and must not be labeled that way. Assume good faith: the most common cause is an accidental re-paste, not a dodge. feedback should say plainly and kindly that this reads as the same answer as before (don't guess at intent, just name what happened), and point them at the one thing still missing — reuse the gap from the prior attempt if it still applies. followUp should invite them to either add to what they already said or try the follow-up question instead of just repeating the original question cold.
-
-Step 2 — If it's a genuine, new attempt, score against one standard, which has exactly three elements:
-  (a) a specific decision or fork is named;
-  (b) the alternative that was considered and rejected is stated;
-  (c) the choice is defended with reasoning or evidence — not just a process or a list of steps.
-
-Assign the band by how many of (a), (b), (c) are actually present in their words. Judge substance only: polish, jargon, seniority-signalling vocabulary, length and fluency are NOT evidence. A terse 40-word answer containing all three elements outranks a fluent 200-word answer containing none.
-- "Strong signal" — all three present. The decision is specific, the rejected alternative is named, and the defence rests on reasoning or evidence they can point to.
-- "Developing" — (a) present, plus one of (b) or (c). They named a real decision but either never surfaced the alternative, or asserted the choice without defending it.
-- "Needs work" — (a) missing or vague, or only a process/steps description, however well written. Nothing here for a panel to score judgment on yet.
-If you're genuinely between two bands, choose the lower one and say what would move it up.
-
-For every genuine attempt (bands "Strong signal", "Developing", "Needs work", "No experience yet"):
-- strength: name ONE real, specific thing this exact answer does well, in a short clause (under 12 words) — a detail, a phrase, a piece of judgment actually present in their text. Must be concrete and traceable to their words, never generic ("good communication skills" is not acceptable). Only leave this "" if there is truly nothing usable. Grammar rule: the UI displays this as "You <strength>", so phrase it as the second-person continuation of that sentence — a base-form or past-tense verb ("used...", "named...", "rejected...", "backed the call with..."), never third-person singular ("uses", "rejects", "names"). Test it by silently reading "You " + your text back to yourself before answering.
-- gap: a short, concrete phrase (roughly 4–10 words, no full sentence) naming exactly what's missing — this gets shown as a highlighted label in the UI, so it must stand alone and be specific to this answer (e.g. "the alternative method you actually rejected", not "more specificity needed").
-- feedback: ONE sentence in your coaching voice connecting the strength and the gap for THIS answer. Use a second sentence only when there's a genuine thread-history point to make — real repetition, real progress. Otherwise stop at one: strength and gap already carry the substance, feedback just adds the voice.
-
-Keep the whole response tight. strength + gap + feedback together should read no longer than the single paragraph of feedback this used to be — don't pad any field just to sound thorough.
-
-priorAttempts, when present, is this candidate's last 1–3 attempts at this line of questioning (question, their answer, the gap flagged each time, and the feedback you gave) — use it to notice real patterns (repetition, avoidance, incremental progress) and say so directly, the way a coach who's been in the room the whole time would, not a stranger seeing this in isolation.
-
-Every response must contain all five keys, including "followUp" — never omit it, not even for a "Strong signal" answer. There is always a sharper next question a panel would ask.
-
-Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation outside the JSON. Use exactly this shape:
-{"band": "Off-topic" | "No experience yet" | "Repeated" | "Strong signal" | "Developing" | "Needs work", "strength": "one specific concrete strength from this answer, or empty string", "gap": "short phrase naming exactly what's missing, or empty string", "feedback": "1-2 direct, warm coach sentences, no template openers, referencing thread history when relevant", "followUp": "one sharper follow-up question a real panelist would ask next — or the original question restated plainly if off-topic"}`;
-
-  let priorAttemptsBlock = "";
-  if (Array.isArray(priorAttempts) && priorAttempts.length > 0) {
-    priorAttemptsBlock = "\n\nPrior attempts in this thread (most recent last):\n" +
-      priorAttempts.map((a, i) => {
-        const gapNote = a && a.gap ? ` (flagged gap: ${a.gap})` : "";
-        const feedbackNote = a && a.feedback ? `\n   Feedback you already gave: "${a.feedback}"` : "";
-        return `${i + 1}. Q: "${a && a.question}" → A: "${a && a.answer}"${gapNote}${feedbackNote}`;
-      }).join("\n");
-  }
-
-  const userPrompt = `Interview round: ${round}\nQuestion asked: "${question}"\nCandidate's answer: "${answer}"${priorAttemptsBlock}`;
-
-  const VALID_BANDS = ["Off-topic", "No experience yet", "Repeated", "Strong signal", "Developing", "Needs work"];
-
-  try {
-    const response = await fetch("https://api.anthropic.com/v1/messages", {
+    const response = await fetch("/.netlify/functions/save-transcript", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": process.env.ANTHROPIC_API_KEY_V2 || process.env.ANTHROPIC_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: "claude-sonnet-5",
-        max_tokens: 1000,
-        system: systemPrompt,
-        messages: [{ role: "user", content: userPrompt }]
-      })
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email, sessionLog })
     });
 
     if (!response.ok) {
-      const errText = await response.text();
-      console.error("Anthropic API error:", response.status, errText);
-      return { statusCode: 502, body: JSON.stringify({ error: "Scoring service unavailable" }) };
-    }
-
-    const data = await response.json();
-    const textBlock = (data.content || []).find((b) => b.type === "text");
-    const raw = textBlock ? textBlock.text : "";
-    const clean = raw.replace(/```json|```/g, "").trim();
-
-    // Validate it's parseable JSON before returning it, so the client never
-    // has to guess whether it got a real result or stray text. Falls back to
-    // extracting the JSON object if the model wrapped it in extra text.
-    let parsed;
-    try {
-      parsed = JSON.parse(clean);
-    } catch (parseErr) {
-      const match = clean.match(/\{[\s\S]*\}/);
-      if (!match) throw parseErr;
-      parsed = JSON.parse(match[0]);
-    }
-
-    // The model intermittently omits "followUp" on high-scoring answers, which
-    // rendered as the literal string "undefined" in the follow-up box. Coerce
-    // every field to a string and guarantee a follow-up exists.
-    for (const key of ["strength", "gap", "feedback", "followUp"]) {
-      if (typeof parsed[key] !== "string") parsed[key] = "";
-    }
-    if (!parsed.followUp.trim()) {
-      console.error("Model omitted followUp for band:", parsed.band);
-      parsed.followUp = parsed.band === "Off-topic"
-        ? question
-        : "What's the part of that decision you're least sure about, looking back?";
-    }
-
-    // An off-list band would render with the red "Needs work" styling in the
-    // UI, which is worse than being wrong quietly. Normalise it instead.
-    if (!VALID_BANDS.includes(parsed.band)) {
-      console.error("Unexpected band from model:", parsed.band);
-      parsed.band = "Developing";
-    }
-
-    // Logging to Google Sheets. Still awaited — on Netlify's Lambda runtime a
-    // detached promise is often killed the moment the handler returns, which
-    // would silently drop rows from the Sheet. Instead the call is bounded by
-    // a hard 1.2s timeout, so a slow or hanging Apps Script webhook can cost
-    // the user at most 1.2s rather than an open-ended wait, and a failure
-    // never blocks the scoring response.
-    if (process.env.GOOGLE_SHEETS_WEBHOOK_URL) {
+      let message = "Couldn't send right now — try again in a moment.";
       try {
-        await fetch(process.env.GOOGLE_SHEETS_WEBHOOK_URL, {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          signal: AbortSignal.timeout(1200),
-          body: JSON.stringify({
-            round,
-            question,
-            answer,
-            band: parsed.band,
-            strength: parsed.strength || "",
-            gap: parsed.gap || "",
-            feedback: parsed.feedback,
-            followUp: parsed.followUp
-          })
-        });
-      } catch (logErr) {
-        console.error("Logging webhook failed or timed out:", logErr.name);
-      }
+        const errBody = await response.json();
+        if (errBody && errBody.error) console.error("save-transcript error:", errBody.error);
+      } catch (_) {}
+      throw new Error(message);
     }
 
-    return {
-      statusCode: 200,
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(parsed)
-    };
+    savedEmail = email;
+    saveForm.style.display = "none";
+    saveError.style.display = "none";
+    saveSuccessTitle.textContent = "Sent to " + email;
+    saveSuccess.style.display = "flex";
+    saveBtnLabel.textContent = "Update my saved answers";
+    if (typeof gtag === "function") {
+      gtag('event', 'transcript_saved', { answers_count: sessionLog.length });
+    }
   } catch (err) {
-    console.error("Scoring function error:", err);
-    return { statusCode: 500, body: JSON.stringify({ error: "Scoring failed" }) };
+    console.error("Save transcript error:", err);
+    saveSuccess.style.display = "none";
+    saveForm.style.display = "block";
+    saveError.textContent = err.message || "Couldn't send right now — try again in a moment.";
+    saveError.style.display = "block";
+  } finally {
+    saveSubmitBtn.disabled = false;
+    saveSubmitBtn.textContent = "Send";
   }
-};
+}
+
+saveBtn.addEventListener("click", () => {
+  if (savedEmail) {
+    sendTranscript(savedEmail);
+    return;
+  }
+  saveForm.style.display = saveForm.style.display === "none" ? "block" : "none";
+  if (saveForm.style.display === "block") emailInput.focus();
+});
+
+saveSubmitBtn.addEventListener("click", () => {
+  const email = emailInput.value.trim();
+  if (!isValidEmail(email)) {
+    emailInput.style.borderColor = "var(--danger-text)";
+    return;
+  }
+  emailInput.style.borderColor = "";
+  sendTranscript(email);
+});
+
+emailInput.addEventListener("keydown", (e) => {
+  if (e.key === "Enter") saveSubmitBtn.click();
+});
+
+async function scoreAnswer() {
+  const answer = answerBox.value.trim();
+  errorTextEl.style.display = "none";
+  if (!answer) {
+    errorTextEl.textContent = "Write an answer first — even a rough one.";
+    errorTextEl.style.display = "block";
+    bandTagEl.style.display = "none";
+    feedbackTextEl.textContent = "";
+    followupTextEl.textContent = "";
+    openModal();
+    return;
+  }
+
+  scoreBtn.disabled = true;
+  scoreBtn.textContent = "Scoring…";
+  bandTagEl.style.display = "inline-block";
+
+  try {
+    const response = await fetch("/.netlify/functions/score", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        round: ROUNDS[currentRound].label,
+        question: currentQuestion,
+        answer: answer,
+        jobBrief: jobBriefInput.value.trim()
+      })
+    });
+
+    if (!response.ok) throw new Error("Request failed");
+
+    const parsed = await response.json();
+
+    bandTagEl.textContent = parsed.band;
+    bandTagEl.className = "band-tag " + bandClass(parsed.band);
+    feedbackTextEl.textContent = parsed.feedback;
+    followupTextEl.textContent = parsed.followUp;
+
+    sessionLog.push({
+      round: ROUNDS[currentRound].label,
+      question: currentQuestion,
+      answer: answer,
+      band: parsed.band,
+      feedback: parsed.feedback,
+      followUp: parsed.followUp
+    });
+    if (typeof gtag === "function") {
+      gtag('event', 'question_scored', {
+        round: ROUNDS[currentRound].label,
+        band: parsed.band
+      });
+    }
+    resetSaveUI();
+    openModal();
+  } catch (err) {
+    console.error("Scoring error:", err);
+    bandTagEl.style.display = "none";
+    feedbackTextEl.textContent = "";
+    followupTextEl.textContent = "";
+    errorTextEl.textContent = "Couldn't score that answer just now. Try again in a moment.";
+    errorTextEl.style.display = "block";
+    openModal();
+  } finally {
+    scoreBtn.disabled = false;
+    scoreBtn.textContent = "Score my answer";
+  }
+}
+
+scoreBtn.addEventListener("click", scoreAnswer);
+
+// Send the final transcript automatically when the tab closes, if the
+// person already opted in with an email at least once. sendBeacon is used
+// specifically because it reliably delivers during page unload, unlike a
+// normal fetch which the browser can abandon mid-flight.
+function sendFinalBeacon() {
+  if (!savedEmail || sessionLog.length === 0) return;
+  const payload = JSON.stringify({ email: savedEmail, sessionLog });
+  navigator.sendBeacon(
+    "/.netlify/functions/save-transcript",
+    new Blob([payload], { type: "application/json" })
+  );
+}
+window.addEventListener("pagehide", sendFinalBeacon);
+window.addEventListener("beforeunload", sendFinalBeacon);
+
+renderPills();
+renderQuestion();
+resetSaveUI();
+</script>
+
+</body>
+</html>
