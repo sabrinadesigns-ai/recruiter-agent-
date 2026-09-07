@@ -382,6 +382,24 @@
   .band-needs-work { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
   .band-offtopic { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border-strong); }
 
+  .strength-text {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--success-text);
+    margin: 0 0 0.6rem;
+  }
+  .gap-line {
+    font-size: 14px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    background: var(--warning-bg);
+    border: 0.5px solid var(--warning-border);
+    border-radius: 10px;
+    padding: 0.55rem 0.8rem;
+    margin: 0 0 1rem;
+  }
+  .gap-line strong { color: var(--warning-text); }
+
   .feedback-text {
     font-size: 15px;
     line-height: 1.7;
@@ -603,6 +621,8 @@
   <div class="modal-box">
     <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     <span class="band-tag" id="bandTag">—</span>
+    <p class="strength-text" id="strengthText" style="display:none;"></p>
+    <p class="gap-line" id="gapLine" style="display:none;"><strong>Missing:</strong> <span id="gapDetail"></span></p>
     <p class="feedback-text" id="feedbackText"></p>
     <div class="followup" id="followupBox">
       <p class="followup-label">What a real panel would ask next</p>
@@ -702,6 +722,7 @@ let currentRound = "portfolio";
 let currentIndex = 0;
 let currentQuestion = "";
 let sessionLog = [];
+let threadHistory = [];
 let savedEmail = null;
 
 const roundsEl = document.getElementById("rounds");
@@ -719,6 +740,9 @@ const modalDoneBtn = document.getElementById("modalDoneBtn");
 const followupBox = document.getElementById("followupBox");
 const bandTagEl = document.getElementById("bandTag");
 const feedbackTextEl = document.getElementById("feedbackText");
+const strengthTextEl = document.getElementById("strengthText");
+const gapLineEl = document.getElementById("gapLine");
+const gapDetailEl = document.getElementById("gapDetail");
 const followupTextEl = document.getElementById("followupText");
 const errorTextEl = document.getElementById("errorText");
 const saveBtn = document.getElementById("saveBtn");
@@ -776,6 +800,7 @@ function renderPills() {
 function renderQuestion() {
   const pool = ROUNDS[currentRound].questions;
   currentQuestion = pool[currentIndex];
+  threadHistory = [];
   roundLabelEl.textContent = ROUNDS[currentRound].label + " · " + (currentIndex + 1) + "/" + pool.length;
   questionTextEl.textContent = "\u201C" + currentQuestion + "\u201D";
   answerBox.value = "";
@@ -917,6 +942,8 @@ async function scoreAnswer() {
     errorTextEl.textContent = "Write an answer first — even a rough one.";
     errorTextEl.style.display = "block";
     bandTagEl.style.display = "none";
+    strengthTextEl.style.display = "none";
+    gapLineEl.style.display = "none";
     feedbackTextEl.textContent = "";
     followupTextEl.textContent = "";
     openModal();
@@ -934,7 +961,8 @@ async function scoreAnswer() {
       body: JSON.stringify({
         round: ROUNDS[currentRound].label,
         question: currentQuestion,
-        answer: answer
+        answer: answer,
+        priorAttempts: threadHistory
       })
     });
 
@@ -944,14 +972,34 @@ async function scoreAnswer() {
 
     bandTagEl.textContent = parsed.band;
     bandTagEl.className = "band-tag " + bandClass(parsed.band);
+
+    if (parsed.strength) {
+      strengthTextEl.textContent = "\u2713 " + parsed.strength;
+      strengthTextEl.style.display = "block";
+    } else {
+      strengthTextEl.style.display = "none";
+    }
+
+    if (parsed.gap) {
+      gapDetailEl.textContent = parsed.gap;
+      gapLineEl.style.display = "block";
+    } else {
+      gapLineEl.style.display = "none";
+    }
+
     feedbackTextEl.textContent = parsed.feedback;
     followupTextEl.textContent = parsed.followUp;
+
+    threadHistory.push({ question: currentQuestion, answer: answer, gap: parsed.gap || "" });
+    if (threadHistory.length > 3) threadHistory = threadHistory.slice(-3);
 
     sessionLog.push({
       round: ROUNDS[currentRound].label,
       question: currentQuestion,
       answer: answer,
       band: parsed.band,
+      strength: parsed.strength || "",
+      gap: parsed.gap || "",
       feedback: parsed.feedback,
       followUp: parsed.followUp
     });
@@ -966,6 +1014,8 @@ async function scoreAnswer() {
   } catch (err) {
     console.error("Scoring error:", err);
     bandTagEl.style.display = "none";
+    strengthTextEl.style.display = "none";
+    gapLineEl.style.display = "none";
     feedbackTextEl.textContent = "";
     followupTextEl.textContent = "";
     errorTextEl.textContent = "Couldn't score that answer just now. Try again in a moment.";

@@ -10,7 +10,7 @@ exports.handler = async function (event) {
     return { statusCode: 400, body: JSON.stringify({ error: "Invalid request body" }) };
   }
 
-  const { round, question, answer } = payload;
+  const { round, question, answer, priorAttempts } = payload;
   if (!round || !question || !answer) {
     return { statusCode: 400, body: JSON.stringify({ error: "Missing round, question, or answer" }) };
   }
@@ -19,16 +19,34 @@ exports.handler = async function (event) {
   // Netlify does not bundle non-JS files alongside functions.
   const systemPrompt = `You are a senior UX hiring panelist and coach reviewing a candidate's spoken interview answer for a Director or Senior-level design role.
 
-Coaching tone: direct and encouraging, but no filler, no generic praise, and no softening real weaknesses. Say exactly what's true, respectfully — never harshly, never with empty encouragement.
+VOICE — this is the most important instruction. Direct, warm, genuinely invested in this person landing the role. No corporate filler, no generic praise ("great point!", "nice job!"), no fake positivity that papers over a real gap, and never harsh or cold either. Talk like a coach who actually read this specific answer, not a template. Vary how you open each response — never start two responses the same way ("You've described..." / "There's a genuine point of view here...") — react to what's actually in front of you.
 
-Step 1 — Check whether the answer is a genuine, on-topic attempt to answer the question. If it is gibberish, joke text, a refusal, or clearly does not engage with the question at all, use band "Off-topic". Feedback should plainly and calmly state that the answer didn't address the question — no shaming — and followUp should be a direct restatement of the original question, prompting a real attempt.
+Step 1 — Check whether the answer is a genuine, on-topic attempt.
+- If it is gibberish, a joke, a refusal, or clearly doesn't engage with the question, use band "Off-topic". strength and gap should both be "". feedback should plainly and calmly state it didn't address the question — no shaming. followUp should restate the original question plainly, prompting a real attempt.
+- If priorAttempts shows this answer is essentially the same as one already given in this thread (same content, reworded or verbatim), also use band "Off-topic". Say so plainly and specifically in feedback (e.g. "that's the same answer you gave me a moment ago") — don't pretend it's new. followUp should push for the one specific thing still missing, not just repeat the original question.
 
-Step 2 — If it is a genuine attempt, score against one standard: does the answer name a specific decision or fork, state what alternative was considered and rejected, and defend the choice with reasoning or evidence — rather than just describing a process or listing steps.
+Step 2 — If it's a genuine, new attempt, score against one standard: does the answer name a specific decision or fork, state what alternative was considered and rejected, and defend the choice with reasoning or evidence — rather than describing a process or listing steps.
+
+For every genuine attempt (bands "Strong signal", "Developing", "Needs work"):
+- strength: name ONE real, specific thing this exact answer does well — a detail, a phrase, a piece of judgment actually present in their text. Must be concrete and traceable to their words, never generic ("good communication skills" is not acceptable). Only leave this "" if there is truly nothing usable.
+- gap: a short, concrete phrase (roughly 4–10 words, no full sentence) naming exactly what's missing — this gets shown as a highlighted label in the UI, so it must stand alone and be specific to this answer (e.g. "the alternative method you actually rejected", not "more specificity needed").
+- feedback: 1–2 sentences in your coaching voice that connect the strength and the gap for THIS answer, and reward genuine progress across attempts if priorAttempts shows any. If this is a second or later attempt at the same underlying question, acknowledge that honestly (e.g. naming that it's attempt two or three) rather than repeating the same critique cold.
+
+priorAttempts, when present, is this candidate's last 1–3 attempts at this line of questioning (question, their answer, and the gap flagged each time) — use it to notice real patterns (repetition, avoidance, incremental progress) and say so directly, the way a coach who's been in the room the whole time would, not a stranger seeing this in isolation.
 
 Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation outside the JSON. Use exactly this shape:
-{"band": "Off-topic" | "Strong signal" | "Developing" | "Needs work", "feedback": "2-3 direct sentences naming what's present and what's missing in THIS specific answer — coach tone, straight to the point", "followUp": "one sharper follow-up question a real panelist would ask next, based on a gap in this answer — or, if off-topic, the original question restated plainly"}`;
+{"band": "Off-topic" | "Strong signal" | "Developing" | "Needs work", "strength": "one specific concrete strength from this answer, or empty string", "gap": "short phrase naming exactly what's missing, or empty string", "feedback": "1-2 direct, warm coach sentences, no template openers, referencing thread history when relevant", "followUp": "one sharper follow-up question a real panelist would ask next — or the original question restated plainly if off-topic"}`;
 
-  const userPrompt = `Interview round: ${round}\nQuestion asked: "${question}"\nCandidate's answer: "${answer}"`;
+  let priorAttemptsBlock = "";
+  if (Array.isArray(priorAttempts) && priorAttempts.length > 0) {
+    priorAttemptsBlock = "\n\nPrior attempts in this thread (most recent last):\n" +
+      priorAttempts.map((a, i) => {
+        const gapNote = a && a.gap ? ` (flagged gap: ${a.gap})` : "";
+        return `${i + 1}. Q: "${a && a.question}" → A: "${a && a.answer}"${gapNote}`;
+      }).join("\n");
+  }
+
+  const userPrompt = `Interview round: ${round}\nQuestion asked: "${question}"\nCandidate's answer: "${answer}"${priorAttemptsBlock}`;
 
   try {
     const response = await fetch("https://api.anthropic.com/v1/messages", {
@@ -81,6 +99,8 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
             question,
             answer,
             band: parsed.band,
+            strength: parsed.strength || "",
+            gap: parsed.gap || "",
             feedback: parsed.feedback,
             followUp: parsed.followUp
           })
