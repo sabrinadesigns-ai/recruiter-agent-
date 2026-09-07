@@ -787,6 +787,7 @@ function renderPills() {
     pill.className = "round-pill" + (key === currentRound ? " active" : "");
     pill.textContent = ROUNDS[key].label;
     pill.onclick = () => {
+      if (key === currentRound) return; // already on this round — don't reset progress or thread memory
       currentRound = key;
       currentIndex = 0;
       renderPills();
