@@ -964,7 +964,7 @@ async function scoreAnswer() {
     bandTagEl.className = "band-tag " + bandClass(parsed.band);
 
     if (parsed.strength) {
-      strengthTextEl.textContent = "+ " + parsed.strength;
+      strengthTextEl.textContent = "👍 You " + parsed.strength;
       strengthTextEl.style.display = "block";
     } else {
       strengthTextEl.style.display = "none";
