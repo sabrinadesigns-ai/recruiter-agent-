@@ -421,6 +421,16 @@
   .band-needs-work { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
   .band-offtopic { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border-strong); }
 
+  .feedback-headline {
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 1.4;
+    margin: 0 0 0.75rem;
+  }
+  .headline-strong { color: var(--success-text); }
+  .headline-developing { color: var(--warning-text); }
+  .headline-needs-work { color: var(--danger-text); }
+  .headline-offtopic { color: var(--text-secondary); }
   .feedback-text {
     font-size: 15px;
     line-height: 1.7;
@@ -648,6 +658,7 @@
   <div class="modal-box">
     <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     <span class="band-tag" id="bandTag">—</span>
+    <p class="feedback-headline" id="feedbackHeadline"></p>
     <p class="feedback-text" id="feedbackText"></p>
     <div class="followup" id="followupBox">
       <p class="followup-label">What a real panel would ask next</p>
@@ -764,6 +775,7 @@ const modalDoneBtn = document.getElementById("modalDoneBtn");
 const followupBox = document.getElementById("followupBox");
 const bandTagEl = document.getElementById("bandTag");
 const feedbackTextEl = document.getElementById("feedbackText");
+const feedbackHeadlineEl = document.getElementById("feedbackHeadline");
 const followupTextEl = document.getElementById("followupText");
 const errorTextEl = document.getElementById("errorText");
 const briefToggle = document.getElementById("briefToggle");
@@ -887,6 +899,13 @@ function bandClass(band) {
   return "band-needs-work";
 }
 
+function headlineClass(band) {
+  if (band === "Strong signal") return "headline-strong";
+  if (band === "Developing") return "headline-developing";
+  if (band === "Off-topic") return "headline-offtopic";
+  return "headline-needs-work";
+}
+
 function resetSaveUI() {
   saveForm.style.display = "none";
   saveSuccess.style.display = "none";
@@ -973,6 +992,7 @@ async function scoreAnswer() {
     errorTextEl.style.display = "block";
     bandTagEl.style.display = "none";
     feedbackTextEl.textContent = "";
+    feedbackHeadlineEl.textContent = "";
     followupTextEl.textContent = "";
     openModal();
     return;
@@ -1000,6 +1020,8 @@ async function scoreAnswer() {
 
     bandTagEl.textContent = parsed.band;
     bandTagEl.className = "band-tag " + bandClass(parsed.band);
+    feedbackHeadlineEl.textContent = parsed.headline || "";
+    feedbackHeadlineEl.className = "feedback-headline " + headlineClass(parsed.band);
     feedbackTextEl.textContent = parsed.feedback;
     followupTextEl.textContent = parsed.followUp;
 
@@ -1023,6 +1045,7 @@ async function scoreAnswer() {
     console.error("Scoring error:", err);
     bandTagEl.style.display = "none";
     feedbackTextEl.textContent = "";
+    feedbackHeadlineEl.textContent = "";
     followupTextEl.textContent = "";
     errorTextEl.textContent = "Couldn't score that answer just now. Try again in a moment.";
     errorTextEl.style.display = "block";
