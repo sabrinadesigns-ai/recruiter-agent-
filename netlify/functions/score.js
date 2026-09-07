@@ -64,6 +64,8 @@ Keep the whole response tight. strength + gap + feedback together should read no
 
 priorAttempts, when present, is this candidate's last 1–3 attempts at this line of questioning (question, their answer, the gap flagged each time, and the feedback you gave) — use it to notice real patterns (repetition, avoidance, incremental progress) and say so directly, the way a coach who's been in the room the whole time would, not a stranger seeing this in isolation.
 
+Every response must contain all five keys, including "followUp" — never omit it, not even for a "Strong signal" answer. There is always a sharper next question a panel would ask.
+
 Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation outside the JSON. Use exactly this shape:
 {"band": "Off-topic" | "No experience yet" | "Repeated" | "Strong signal" | "Developing" | "Needs work", "strength": "one specific concrete strength from this answer, or empty string", "gap": "short phrase naming exactly what's missing, or empty string", "feedback": "1-2 direct, warm coach sentences, no template openers, referencing thread history when relevant", "followUp": "one sharper follow-up question a real panelist would ask next — or the original question restated plainly if off-topic"}`;
 
@@ -118,6 +120,19 @@ Respond with ONLY raw JSON, no markdown code fences, no preamble, no explanation
       const match = clean.match(/\{[\s\S]*\}/);
       if (!match) throw parseErr;
       parsed = JSON.parse(match[0]);
+    }
+
+    // The model intermittently omits "followUp" on high-scoring answers, which
+    // rendered as the literal string "undefined" in the follow-up box. Coerce
+    // every field to a string and guarantee a follow-up exists.
+    for (const key of ["strength", "gap", "feedback", "followUp"]) {
+      if (typeof parsed[key] !== "string") parsed[key] = "";
+    }
+    if (!parsed.followUp.trim()) {
+      console.error("Model omitted followUp for band:", parsed.band);
+      parsed.followUp = parsed.band === "Off-topic"
+        ? question
+        : "What's the part of that decision you're least sure about, looking back?";
     }
 
     // An off-list band would render with the red "Needs work" styling in the
