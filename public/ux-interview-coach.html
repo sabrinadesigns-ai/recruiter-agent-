@@ -113,6 +113,45 @@
     gap: 6px;
     margin: 0.75rem 0 1rem;
   }
+
+  /* Job brief (optional) */
+  .brief-toggle {
+    background: rgba(255,255,255,0.55);
+    border: 1.5px solid rgba(26,26,26,0.35);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 500;
+    font-family: var(--font-sans);
+    border-radius: 16px;
+    padding: 8px 16px;
+    cursor: pointer;
+    display: inline-block;
+    margin-bottom: 1.25rem;
+    transition: background 150ms;
+  }
+  .brief-toggle:hover { background: rgba(255,255,255,0.85); }
+  .brief-section {
+    margin-top: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+  .brief-textarea {
+    width: 100%;
+    min-height: 90px;
+    resize: vertical;
+    background: rgba(255,255,255,0.7);
+    border: 1px solid rgba(26,26,26,0.2);
+    border-radius: 12px;
+    padding: 0.85rem 1rem;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    line-height: 1.5;
+    color: var(--text-primary);
+  }
+  .brief-textarea:focus {
+    outline: none;
+    border-color: var(--rose);
+  }
+  .brief-textarea::placeholder { color: rgba(26,26,26,0.5); font-style: italic; }
   .round-pill {
     font-size: 13px;
     padding: 6px 14px;
@@ -381,15 +420,6 @@
   .band-developing { background: var(--warning-bg); color: var(--warning-text); border: 0.5px solid var(--warning-border); }
   .band-needs-work { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
   .band-offtopic { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border-strong); }
-  .band-repeated { background: var(--accent-bg); color: var(--accent-text); border: 0.5px solid var(--accent-border); }
-  .band-hypothetical { background: var(--rose-bg); color: var(--rose); border: 0.5px solid var(--rose); }
-
-  .strength-text {
-    font-size: 14px;
-    line-height: 1.6;
-    color: var(--success-text);
-    margin: 0 0 0.6rem;
-  }
 
   .feedback-text {
     font-size: 15px;
@@ -574,7 +604,13 @@
   <p class="field-label">1. Choose topic</p>
   <div class="rounds" id="rounds"></div>
 
-  <p class="field-label">2. Interview question</p>
+  <p class="field-label">2. Add a job brief (optional)</p>
+  <button type="button" class="brief-toggle" id="briefToggle">+ Add a job brief</button>
+  <div class="brief-section" id="briefSection" style="display:none;">
+    <textarea id="jobBriefInput" class="brief-textarea" placeholder="Paste the job ad or brief here — your answers will also get scored against what this specific role needs, not just general judgment."></textarea>
+  </div>
+
+  <p class="field-label">3. Interview question</p>
   <div class="question-row">
     <button class="nav-arrow left" id="prevQBtn" aria-label="Previous question"><span class="triangle"></span></button>
     <div class="card-wrap">
@@ -587,7 +623,7 @@
   </div>
 
   <div class="field-label-row">
-    <p class="field-label">3. Your answer</p>
+    <p class="field-label">4. Your answer</p>
     <div class="field-label-right">
       <span class="word-count" id="wordCount">0 words</span>
       <span class="tooltip-icon" id="tipIcon">i<span class="tooltip-text">Name the decision, say what you rejected, and defend the choice. A list of steps reads junior. A defended fork reads senior.</span></span>
@@ -612,7 +648,6 @@
   <div class="modal-box">
     <button class="modal-close" id="modalClose" aria-label="Close">×</button>
     <span class="band-tag" id="bandTag">—</span>
-    <p class="strength-text" id="strengthText" style="display:none;"></p>
     <p class="feedback-text" id="feedbackText"></p>
     <div class="followup" id="followupBox">
       <p class="followup-label">What a real panel would ask next</p>
@@ -712,7 +747,6 @@ let currentRound = "portfolio";
 let currentIndex = 0;
 let currentQuestion = "";
 let sessionLog = [];
-let threadHistory = [];
 let savedEmail = null;
 
 const roundsEl = document.getElementById("rounds");
@@ -730,9 +764,18 @@ const modalDoneBtn = document.getElementById("modalDoneBtn");
 const followupBox = document.getElementById("followupBox");
 const bandTagEl = document.getElementById("bandTag");
 const feedbackTextEl = document.getElementById("feedbackText");
-const strengthTextEl = document.getElementById("strengthText");
 const followupTextEl = document.getElementById("followupText");
 const errorTextEl = document.getElementById("errorText");
+const briefToggle = document.getElementById("briefToggle");
+const briefSection = document.getElementById("briefSection");
+const jobBriefInput = document.getElementById("jobBriefInput");
+
+briefToggle.addEventListener("click", () => {
+  const isHidden = briefSection.style.display === "none";
+  briefSection.style.display = isHidden ? "block" : "none";
+  briefToggle.textContent = isHidden ? "− Hide job brief" : "+ Add a job brief";
+  if (isHidden) jobBriefInput.focus();
+});
 const saveBtn = document.getElementById("saveBtn");
 const saveBtnLabel = document.getElementById("saveBtnLabel");
 const saveRow = document.getElementById("saveRow");
@@ -773,7 +816,6 @@ function renderPills() {
     pill.className = "round-pill" + (key === currentRound ? " active" : "");
     pill.textContent = ROUNDS[key].label;
     pill.onclick = () => {
-      if (key === currentRound) return; // already on this round — don't reset progress or thread memory
       currentRound = key;
       currentIndex = 0;
       renderPills();
@@ -789,7 +831,6 @@ function renderPills() {
 function renderQuestion() {
   const pool = ROUNDS[currentRound].questions;
   currentQuestion = pool[currentIndex];
-  threadHistory = [];
   roundLabelEl.textContent = ROUNDS[currentRound].label + " · " + (currentIndex + 1) + "/" + pool.length;
   questionTextEl.textContent = "\u201C" + currentQuestion + "\u201D";
   answerBox.value = "";
@@ -843,8 +884,6 @@ function bandClass(band) {
   if (band === "Strong signal") return "band-strong";
   if (band === "Developing") return "band-developing";
   if (band === "Off-topic") return "band-offtopic";
-  if (band === "Repeated") return "band-repeated";
-  if (band === "No experience yet") return "band-hypothetical";
   return "band-needs-work";
 }
 
@@ -933,7 +972,6 @@ async function scoreAnswer() {
     errorTextEl.textContent = "Write an answer first — even a rough one.";
     errorTextEl.style.display = "block";
     bandTagEl.style.display = "none";
-    strengthTextEl.style.display = "none";
     feedbackTextEl.textContent = "";
     followupTextEl.textContent = "";
     openModal();
@@ -952,7 +990,7 @@ async function scoreAnswer() {
         round: ROUNDS[currentRound].label,
         question: currentQuestion,
         answer: answer,
-        priorAttempts: threadHistory
+        jobBrief: jobBriefInput.value.trim()
       })
     });
 
@@ -962,36 +1000,14 @@ async function scoreAnswer() {
 
     bandTagEl.textContent = parsed.band;
     bandTagEl.className = "band-tag " + bandClass(parsed.band);
-
-    if (parsed.strength) {
-      strengthTextEl.textContent = "👍 You " + parsed.strength;
-      strengthTextEl.style.display = "block";
-    } else {
-      strengthTextEl.style.display = "none";
-    }
-
     feedbackTextEl.textContent = parsed.feedback;
-    const followUpText = (parsed.followUp || "").trim();
-    followupTextEl.textContent = followUpText;
-    followupBox.style.display = followUpText ? "" : "none";
-
-    threadHistory.push({
-      question: currentQuestion,
-      answer: answer,
-      gap: parsed.gap || "",
-      strength: parsed.strength || "",
-      feedback: parsed.feedback || "",
-      followUp: parsed.followUp || ""
-    });
-    if (threadHistory.length > 3) threadHistory = threadHistory.slice(-3);
+    followupTextEl.textContent = parsed.followUp;
 
     sessionLog.push({
       round: ROUNDS[currentRound].label,
       question: currentQuestion,
       answer: answer,
       band: parsed.band,
-      strength: parsed.strength || "",
-      gap: parsed.gap || "",
       feedback: parsed.feedback,
       followUp: parsed.followUp
     });
@@ -1006,7 +1022,6 @@ async function scoreAnswer() {
   } catch (err) {
     console.error("Scoring error:", err);
     bandTagEl.style.display = "none";
-    strengthTextEl.style.display = "none";
     feedbackTextEl.textContent = "";
     followupTextEl.textContent = "";
     errorTextEl.textContent = "Couldn't score that answer just now. Try again in a moment.";
@@ -1024,11 +1039,8 @@ scoreBtn.addEventListener("click", scoreAnswer);
 // person already opted in with an email at least once. sendBeacon is used
 // specifically because it reliably delivers during page unload, unlike a
 // normal fetch which the browser can abandon mid-flight.
-let finalBeaconSent = false;
 function sendFinalBeacon() {
-  if (finalBeaconSent) return;
   if (!savedEmail || sessionLog.length === 0) return;
-  finalBeaconSent = true;
   const payload = JSON.stringify({ email: savedEmail, sessionLog });
   navigator.sendBeacon(
     "/.netlify/functions/save-transcript",
