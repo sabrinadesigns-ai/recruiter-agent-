@@ -992,7 +992,9 @@ async function scoreAnswer() {
     }
 
     feedbackTextEl.textContent = parsed.feedback;
-    followupTextEl.textContent = parsed.followUp;
+    const followUpText = (parsed.followUp || "").trim();
+    followupTextEl.textContent = followUpText;
+    followupBox.style.display = followUpText ? "" : "none";
 
     threadHistory.push({
       question: currentQuestion,
