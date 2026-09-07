@@ -381,6 +381,7 @@
   .band-developing { background: var(--warning-bg); color: var(--warning-text); border: 0.5px solid var(--warning-border); }
   .band-needs-work { background: var(--danger-bg); color: var(--danger-text); border: 0.5px solid var(--danger-border); }
   .band-offtopic { background: var(--surface-2); color: var(--text-primary); border: 0.5px solid var(--border-strong); }
+  .band-repeated { background: var(--accent-bg); color: var(--accent-text); border: 0.5px solid var(--accent-border); }
 
   .strength-text {
     font-size: 14px;
@@ -854,6 +855,7 @@ function bandClass(band) {
   if (band === "Strong signal") return "band-strong";
   if (band === "Developing") return "band-developing";
   if (band === "Off-topic") return "band-offtopic";
+  if (band === "Repeated") return "band-repeated";
   return "band-needs-work";
 }
 
@@ -950,6 +952,25 @@ async function scoreAnswer() {
     return;
   }
 
+  const lastAttempt = threadHistory[threadHistory.length - 1];
+  if (lastAttempt && answer === lastAttempt.answer.trim()) {
+    bandTagEl.textContent = "Repeated";
+    bandTagEl.className = "band-tag band-repeated";
+    bandTagEl.style.display = "inline-block";
+    strengthTextEl.style.display = "none";
+    if (lastAttempt.gap) {
+      gapDetailEl.textContent = lastAttempt.gap;
+      gapLineEl.style.display = "block";
+    } else {
+      gapLineEl.style.display = "none";
+    }
+    feedbackTextEl.textContent = "That's the exact same answer as last time — if it pasted in again by accident, no worries. Add something new, or try the follow-up below.";
+    followupTextEl.textContent = lastAttempt.followUp || currentQuestion;
+    resetSaveUI();
+    openModal();
+    return;
+  }
+
   scoreBtn.disabled = true;
   scoreBtn.textContent = "Scoring…";
   bandTagEl.style.display = "inline-block";
@@ -990,7 +1011,7 @@ async function scoreAnswer() {
     feedbackTextEl.textContent = parsed.feedback;
     followupTextEl.textContent = parsed.followUp;
 
-    threadHistory.push({ question: currentQuestion, answer: answer, gap: parsed.gap || "" });
+    threadHistory.push({ question: currentQuestion, answer: answer, gap: parsed.gap || "", followUp: parsed.followUp || "" });
     if (threadHistory.length > 3) threadHistory = threadHistory.slice(-3);
 
     sessionLog.push({
